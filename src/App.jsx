@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Herosection from './Components/Herosection'
 import './App.css'
+import Menu from './Components/Menu'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -8,6 +9,7 @@ function App() {
   return (
     <>
      <Herosection/>
+     <Menu/>
     </>
   )
 }
