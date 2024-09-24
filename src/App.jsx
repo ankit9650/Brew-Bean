@@ -1,24 +1,35 @@
-import { useState } from 'react'
-import Herosection from './Components/Herosection'
-import './App.css'
-import Menu from './Components/Menu'
-import Footer from './Components/Footer'
-import About from './Components/About'
-import Contact from './Components/Contact'
+import React, { useState } from 'react';
+import Herosection from './Components/Herosection';
+import Menu from './Components/Menu';
+import Footer from './Components/Footer';
+import About from './Components/About';
+import OurBrews from './Components/OurBrews'
+import Contact from './Components/Contact';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [showMenu, setShowMenu] = useState(false); // State to control whether to show the Menu component
+
+  const handleViewMenuClick = () => {
+    setShowMenu(true); // Change state to show the Menu component
+  };
 
   return (
     <>
-    
-     <Herosection/>
-      <Menu/>
-      <About/>
-      <Contact/>
-     <Footer/>
+      {/* Render all sections if showMenu is false */}
+      {!showMenu ? (
+        <>
+          <Herosection onMenuClick={handleViewMenuClick} /> {/* Pass down the handler */}
+          <OurBrews/>
+          <About />
+          <Contact />
+          <Footer />
+        </>
+      ) : (
+        <Menu /> 
+      )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;

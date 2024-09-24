@@ -113,7 +113,7 @@ function About() {
             <div className="w-full lg:justify-start justify-center items-start flex">
               <div className="sm:w-[564px] w-full sm:h-[646px] h-full sm:bg-about-img rounded-3xl sm:border border-about-img relative">
                 <img
-                  className="sm:mt-5 sm:ml-5 w-full h-full rounded-3xl object-cover lazy-loading"
+                  className="sm:mt-5 sm:ml-5 w-full h-full rounded-3xl object-cover "
                   src="src/assets/about.jpg"
                   alt="about Us image"
                 />
