@@ -87,7 +87,7 @@ function Menu() {
             }`}
             onClick={() => handleImageChange('hotclassic.png')}
           >
-            Coffee Specials
+            Hot Classic
           </button>
           <button
             className={`hover:text-gray-300 px-4 py-2 ${
@@ -95,7 +95,7 @@ function Menu() {
             }`}
             onClick={() => handleImageChange('alltimechiller.png')}
           >
-            Desserts
+            Chillers
           </button>
           <button
             className={`hover:text-gray-300 px-4 py-2 ${
@@ -103,7 +103,7 @@ function Menu() {
             }`}
             onClick={() => handleImageChange('feedcoffees.png')}
           >
-            Sandwiches
+            Feed Coffees
           </button>
           <button
             className={`hover:text-gray-300 px-4 py-2 ${
@@ -111,7 +111,7 @@ function Menu() {
             }`}
             onClick={() => handleImageChange('alltimedelight.png')}
           >
-            Specials
+            Delight Stuff
           </button>
         </div>
       </div>
