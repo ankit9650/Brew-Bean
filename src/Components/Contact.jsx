@@ -75,7 +75,7 @@ function Contact() {
 
   return (
     <>
-      <div className="font-[sans-serif] max-w-6xl mx-auto relative bg-white shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] bg-transparent rounded-3xl overflow-hidden mt-4">
+      <div className="font-[sans-serif] max-w-6xl mx-auto relative bg-white shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] bg-transparent rounded-3xl overflow-hidden mt-4" id="contact">
         <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-mainhead-button"></div>
         <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-mainhead-button"></div>
 

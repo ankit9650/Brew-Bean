@@ -3,9 +3,10 @@ import Herosection from './Components/Herosection';
 import Menu from './Components/Menu';
 import Footer from './Components/Footer';
 import About from './Components/About';
-import OurBrews from './Components/OurBrews'
+import OurBrews from './Components/OurBrews';
 import Contact from './Components/Contact';
 import './App.css';
+import Navbar from './Components/Navbar';
 
 function App() {
   const [showMenu, setShowMenu] = useState(false); // State to control whether to show the Menu component
@@ -16,18 +17,23 @@ function App() {
 
   return (
     <>
-      {/* Render all sections if showMenu is false */}
+    
+      {/* Conditionally render the content */}
       {!showMenu ? (
         <>
+          {/* Main sections */}
+          <Navbar/>
           <Herosection onMenuClick={handleViewMenuClick} /> {/* Pass down the handler */}
-          <OurBrews/>
+          <OurBrews />
           <About />
           <Contact />
-          <Footer />
         </>
       ) : (
-        <Menu /> 
+        <Menu /> // Render Menu when showMenu is true
       )}
+
+      {/* Footer should always be rendered */}
+      <Footer />
     </>
   );
 }

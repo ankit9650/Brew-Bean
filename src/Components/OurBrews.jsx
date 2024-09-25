@@ -45,7 +45,7 @@ function OurBrews() {
   return (
     <>
 
-      <div className="w-full mt-5 flex flex-col items-center">
+      <div className="w-full mt-5 flex flex-col items-center" id="Ourbrews">
         <h1 className="max-w-xl text-center mb-8 text-xl font-bold tracking-tight leading-none text-mainhead-heading md:text-2xl xl:text-5xl dark:text-mainhead-heading">
           Our Brews
         </h1>
