@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { Link } from 'react-router-dom';
+
+// Inside any component, like Navbar or Herosection
+<Link to="/about">View Menu</Link>
 
 function About() {
   const [happyClients, setHappyClients] = useState(0);

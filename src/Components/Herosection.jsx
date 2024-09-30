@@ -1,8 +1,17 @@
 import React from "react";
+import Navbar from "./Navbar";
+import OurBrews from "./OurBrews"
+import About from "./About"
+import Contact from "./Contact"
+import { Link } from 'react-router-dom';
+
+// Inside any component, like Navbar or Herosection
+<Link to="/Hero">View Menu</Link>
 
 function Herosection({ onMenuClick }) {
   return (
     <>
+      <Navbar/>
       <section className="bg-body dark:bg-gray-900 p-2">
         <div className="grid w-full px-4 py-8 lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
           <div className="mr-auto place-self-center lg:col-span-7">
@@ -37,6 +46,9 @@ function Herosection({ onMenuClick }) {
         </div>
       </section>
       <hr />
+      <OurBrews />
+      <About/>
+      <Contact />
     </>
   );
 }

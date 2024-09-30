@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import { Link } from 'react-router-dom';
+
+// Inside any component, like Navbar or Herosection
+<Link to="/contact">View Menu</Link>
 
 function Contact() {
   const [formData, setFormData] = useState({

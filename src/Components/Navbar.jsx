@@ -6,11 +6,7 @@ function Navbar() {
   // Function to handle scroll and set state
   const handleScroll = () => {
     const offset = window.scrollY;
-    if (offset > 50) {
-      setScrolled(true);
-    } else {
-      setScrolled(false);
-    }
+    setScrolled(offset > 50);
   };
 
   useEffect(() => {
@@ -65,6 +61,27 @@ function Navbar() {
 
           <div className="hidden w-full md:flex md:w-auto md:items-center">
             <ul className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0 w-full justify-end md:p-0 p-4">
+              <li>
+                <a
+                  href="#"
+                  className={`flex items-center block py-2 px-3 rounded md:p-0 ${
+                    scrolled
+                      ? 'text-white hover:text-gray-300'
+                      : 'text-gray-900 hover:text-blue-700'
+                  }`}
+                >
+                  E-Shop
+                  <span className="ml-2">
+                    <img
+                      width="22px"
+                      src="https://img.icons8.com/?size=100&id=gD6jY1ZThEJD&format=png&color=000000"
+                      alt="Cart Icon"
+                      className="align-middle"
+                    />
+                  </span>
+                </a>
+              </li>
+
               <li>
                 <a
                   href="#about"

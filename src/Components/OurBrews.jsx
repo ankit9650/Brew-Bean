@@ -1,4 +1,8 @@
 import React from "react";
+import { Link } from 'react-router-dom';
+
+// Inside any component, like Navbar or Herosection
+<Link to="/our-brews">View Menu</Link>
 
 // Static API data
 const staticData = [
