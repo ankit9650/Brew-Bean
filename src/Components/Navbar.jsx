@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
-function Navbar() {
+function Navbar({onEshopclick}) {
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate(); // Initialize useNavigate
 
-  // Function to handle scroll and set state
   const handleScroll = () => {
     const offset = window.scrollY;
     setScrolled(offset > 50);
@@ -16,6 +17,14 @@ function Navbar() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  // Function to handle E-Shop click
+  const handleEshopClick = () => {
+    navigate('/eshop'); // Navigate to the E-Shop route
+    if (onEshopclick) onEshopclick(); // Call the parent function if necessary
+  };
+
+
 
   return (
     <>
@@ -62,8 +71,8 @@ function Navbar() {
           <div className="hidden w-full md:flex md:w-auto md:items-center">
             <ul className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0 w-full justify-end md:p-0 p-4">
               <li>
-                <a
-                  href="#"
+                <button
+                  onClick={handleEshopClick} // Handle Eshop redirect
                   className={`flex items-center block py-2 px-3 rounded md:p-0 ${
                     scrolled
                       ? 'text-white hover:text-gray-300'
@@ -79,7 +88,7 @@ function Navbar() {
                       className="align-middle"
                     />
                   </span>
-                </a>
+                </button>
               </li>
 
               <li>

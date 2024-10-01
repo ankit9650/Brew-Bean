@@ -1,40 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Import useNavigate and useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
+import useTypewriter from './Hook/Typewriter'; // Import the typewriter hook
 
 function Menu() {
   // State to manage loading
   const [isLoading, setIsLoading] = useState(true);
-  // State to store the current image for the bottom section
   const [selectedImage, setSelectedImage] = useState('hotclassic.png'); // Default image
-
-  // Initialize useNavigate and useLocation
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Function to handle navbar clicks
+  const typedText = useTypewriter('Coffee"', 250); // Typewriter effect for "Coffee"
+
   const handleImageChange = (image) => {
     setSelectedImage(image);
-    // Update the URL without reloading the page
-    navigate(`?image=${image}`); // Update URL query parameters
+    navigate(`?image=${image}`);
   };
 
-  // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000); // Adjust the loading time as needed (2000 ms = 2 seconds)
-
-    return () => clearTimeout(timer); // Cleanup timer on unmount
+    }, 2000);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Check URL parameters for selected image
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const imageParam = params.get('image');
     if (imageParam) {
-      setSelectedImage(imageParam); // Set the selected image based on URL
+      setSelectedImage(imageParam);
     }
-    setIsLoading(false); // Stop loading after checking the URL
+    setIsLoading(false);
   }, [location.search]);
 
   if (isLoading) {
@@ -91,8 +86,8 @@ function Menu() {
             <h1 className="font-bold text-mainhead-heading text-4xl sm:text-5xl md:text-6xl lg:text-5xl">
               "A lot can happen over
             </h1>
-            <p className="animate-bounce font-extrabold tracking-wide mt-1 leading-none text-mainhead-heading md:text-5xl xl:text-6xl dark:text-mainhead-heading">
-              Coffee"
+            <p className=" font-extrabold tracking-wide leading-none text-mainhead-heading md:text-5xl xl:text-6xl dark:text-mainhead-heading">
+              {typedText}
             </p>
           </div>
         </div>
