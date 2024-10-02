@@ -94,7 +94,7 @@ function Menu() {
       </div>
 
       {/* Bottom Navbar */}
-      <div className="w-full bg-mainhead-heading text-white py-4">
+      <div className="w-full bg-mainhead-heading font-extrabold text-white py-4">
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 flex justify-center space-x-8">
           <button
             className={`hover:text-gray-300 px-4 py-2 ${selectedImage === 'hotclassic.png' ? 'text-body' : ''}`}
