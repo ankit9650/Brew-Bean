@@ -6,6 +6,8 @@ import Footer from './Components/Footer';
 import Navbar from './Components/Navbar';
 import NotFound from './Components/NotFound';
 import Eshop from './Components/E-shop'; // Import your E-Shop component
+import Cart from "./Components/Cart"; // Adjust the path as necessary
+import Checkout from "./Components/Checkout"; // Adjust the path as necessary
 import './App.css';
 
 function App() {
@@ -36,6 +38,8 @@ function App() {
         />
         
         <Route path="/eshop" element={<Eshop />} /> {/* Add E-Shop route */}
+        <Route path="/cart" element={<Cart />} /> {/* Add Cart route */}
+        <Route path="/checkout" element={<Checkout />} /> {/* Add Checkout route */}
         
         {/* Catch-all route for non-existing paths */}
         <Route path="*" element={<NotFound />} />
