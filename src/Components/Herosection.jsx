@@ -2,7 +2,7 @@ import React from "react";
 import OurBrews from "./OurBrews";
 import About from "./About";
 import Contact from "./Contact";
-import heroImage from 'src/assets/hero.png'; // Import your image
+//import heroImage from 'src/assets/hero.png'; // Import your image
 
 function Herosection({ onMenuClick }) {
   return (
@@ -37,7 +37,7 @@ function Herosection({ onMenuClick }) {
               </button>
             </div>
             <div className="hidden lg:mt-0 lg:col-span-5 lg:flex">
-              <img src={heroImage} alt="mockup" /> {/* Use the imported image */}
+              <img src={`${process.env.PUBLIC_URL}/assets/hero.png`} alt="mockup" /> {/* Use the imported image */}
             </div>
           </div>
         </section>
