@@ -11,12 +11,16 @@ import Checkout from "./Components/Checkout"; // Adjust the path as necessary
 import './App.css';
 
 function App() {
-  // State to track if the Menu component should be displayed
   const [showMenu, setShowMenu] = useState(false);
-  
+
   // Function to toggle the menu view
   const handleViewMenuClick = () => {
     setShowMenu(true);
+  };
+
+  // Function to handle Home button click from Menu component
+  const handleHomeClick = () => {
+    setShowMenu(false);  // Set showMenu to false to show HeroSection again
   };
 
   return (
@@ -32,7 +36,7 @@ function App() {
                 <Herosection onMenuClick={handleViewMenuClick} />              
               </>
             ) : (
-              <Menu />
+              <Menu onHomeClick={handleHomeClick} />  // Pass handleHomeClick to Menu component
             )
           }
         />

@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import useTypewriter from './Hook/Typewriter'; // Import the typewriter hook
+import useTypewriter from './Hook/Typewriter'; // Ensure the typewriter hook is imported
 
-function Menu() {
-  // State to manage loading
+// Update paths based on your folder structure
+import logoImage from '../assets/logo.png'; // Corrected path
+import menuHeadImage from '../assets/menuhead.png'; // Corrected path
+import hotClassicImage from '../assets/hotclassic.png'; // Corrected path
+import allTimeChillerImage from '../assets/alltimechiller.png'; // Corrected path
+import feedCoffeesImage from '../assets/feedcoffees.png'; // Corrected path
+import allTimeDelightImage from '../assets/alltimedelight.png'; // Corrected path
+
+function Menu({ onHomeClick }) {
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState('hotclassic.png'); // Default image
+  const [selectedImage, setSelectedImage] = useState(hotClassicImage); // Default image
   const navigate = useNavigate();
   const location = useLocation();
 
-  const typedText = useTypewriter('Coffee"', 250); // Typewriter effect for "Coffee"
+  // Use the typewriter effect
+  const typedText = useTypewriter('Coffee', 250); // Typewriter effect for "Coffee"
 
   const handleImageChange = (image) => {
     setSelectedImage(image);
@@ -27,7 +35,24 @@ function Menu() {
     const params = new URLSearchParams(location.search);
     const imageParam = params.get('image');
     if (imageParam) {
-      setSelectedImage(imageParam);
+      // Check if the image exists in the imported images
+      switch (imageParam) {
+        case 'hotclassic.png':
+          setSelectedImage(hotClassicImage);
+          break;
+        case 'alltimechiller.png':
+          setSelectedImage(allTimeChillerImage);
+          break;
+        case 'feedcoffees.png':
+          setSelectedImage(feedCoffeesImage);
+          break;
+        case 'alltimedelight.png':
+          setSelectedImage(allTimeDelightImage);
+          break;
+        default:
+          setSelectedImage(hotClassicImage); // Fallback to default
+          break;
+      }
     }
     setIsLoading(false);
   }, [location.search]);
@@ -47,18 +72,18 @@ function Menu() {
         <div className="max-w-screen-xl flex items-center justify-between mx-auto p-4">
           {/* Logo Section */}
           <a href={"#"} className="flex items-center space-x-3">
-            <img src="src/assets/logo.png" className="h-8" alt="Logo" />
+            <img src={logoImage} className="h-8" alt="Logo" />
             <span className={`self-center text-2xl font-bold whitespace-nowrap text-mainhead-heading`}>
               Brew & Beans
             </span>
           </a>
 
-          {/* About Button */}
+          {/* Home Button */}
           <div className="hidden md:block">
             <ul className="flex items-center">
               <li>
                 <button
-                  onClick={() => navigate('/')} // Navigate to Home on button click
+                  onClick={onHomeClick}  // onClick calls the passed down function
                   className={`block py-2 px-3 text-mainhead-heading`}
                 >
                   Home
@@ -75,7 +100,7 @@ function Menu() {
           {/* Left Side - Image */}
           <div className="flex justify-center md:justify-start">
             <img
-              src="src/assets/menuhead.png"
+              src={menuHeadImage} // Use the imported image
               className="shrink-0 w-5/6 md:w-full"
               alt="Menu Image"
             />
@@ -86,8 +111,8 @@ function Menu() {
             <h1 className="font-bold text-mainhead-heading text-4xl sm:text-5xl md:text-6xl lg:text-5xl">
               "A lot can happen over
             </h1>
-            <p className=" font-extrabold tracking-wide leading-none text-mainhead-heading md:text-5xl xl:text-6xl dark:text-mainhead-heading">
-              {typedText}
+            <p className="font-extrabold tracking-wide leading-none text-mainhead-heading md:text-5xl xl:text-6xl">
+              {typedText} {/* Render the typed text */}
             </p>
           </div>
         </div>
@@ -97,26 +122,26 @@ function Menu() {
       <div className="w-full bg-mainhead-heading font-extrabold text-white py-4">
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 flex justify-center space-x-8">
           <button
-            className={`hover:text-gray-300 px-4 py-2 ${selectedImage === 'hotclassic.png' ? 'text-body' : ''}`}
-            onClick={() => handleImageChange('hotclassic.png')}
+            className={`hover:text-gray-300 px-4 py-2 ${selectedImage === hotClassicImage ? 'text-body' : ''}`}
+            onClick={() => handleImageChange(hotClassicImage)}
           >
             Hot Classic
           </button>
           <button
-            className={`hover:text-gray-300 px-4 py-2 ${selectedImage === 'alltimechiller.png' ? 'text-body' : ''}`}
-            onClick={() => handleImageChange('alltimechiller.png')}
+            className={`hover:text-gray-300 px-4 py-2 ${selectedImage === allTimeChillerImage ? 'text-body' : ''}`}
+            onClick={() => handleImageChange(allTimeChillerImage)}
           >
             Chillers
           </button>
           <button
-            className={`hover:text-gray-300 px-4 py-2 ${selectedImage === 'feedcoffees.png' ? 'text-body' : ''}`}
-            onClick={() => handleImageChange('feedcoffees.png')}
+            className={`hover:text-gray-300 px-4 py-2 ${selectedImage === feedCoffeesImage ? 'text-body' : ''}`}
+            onClick={() => handleImageChange(feedCoffeesImage)}
           >
             Feed Coffees
           </button>
           <button
-            className={`hover:text-gray-300 px-4 py-2 ${selectedImage === 'alltimedelight.png' ? 'text-body' : ''}`}
-            onClick={() => handleImageChange('alltimedelight.png')}
+            className={`hover:text-gray-300 px-4 py-2 ${selectedImage === allTimeDelightImage ? 'text-body' : ''}`}
+            onClick={() => handleImageChange(allTimeDelightImage)}
           >
             Delight Stuff
           </button>
@@ -127,7 +152,7 @@ function Menu() {
       <div className="w-full">
         {selectedImage && (
           <img
-            src={`src/assets/${selectedImage}`}
+            src={selectedImage}  // Use the currently selected image
             className="w-full h-auto"
             alt="Selected Menu Item"
           />

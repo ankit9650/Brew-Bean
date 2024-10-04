@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import ECard from "./ECard";
 import Cart from "./Cart"; // Ensure this is your Cart component
+import { useNavigate } from "react-router-dom";
 
 function Eshop() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(1);
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const navigate = useNavigate(); // React Router's hook for navigation
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -30,8 +32,6 @@ function Eshop() {
       }
       return [...prevItems, { ...item, quantity }];
     });
-    // Remove this line to stop the cart from opening automatically
-    // setIsCartOpen(true); // Open cart after adding item
   };
 
   // Calculate total price of items in cart
@@ -42,7 +42,17 @@ function Eshop() {
 
   const toggleCart = () => {
     setIsCartOpen((prev) => !prev);
-    console.log("Cart opened:", !isCartOpen); // Debugging log
+  };
+
+  // Scroll to the Hero section
+  const handleHomeClick = () => {
+    navigate("/");
+    setTimeout(() => {
+      const heroSection = document.getElementById("hero-section");
+      if (heroSection) {
+        heroSection.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 0);
   };
 
   if (isLoading) {
@@ -213,7 +223,6 @@ function Eshop() {
         return null;
     }
   };
-
   return (
     <>
       <nav className="w-full z-20 top-0 start-0 transition-colors duration-300">
@@ -229,7 +238,7 @@ function Eshop() {
             <ul className="flex items-center">
               <li>
                 <button
-                  onClick={() => navigate("/")}
+                  onClick={handleHomeClick} // Home button scrolls to the Hero section
                   className="block py-2 px-3 text-mainhead-heading"
                 >
                   Home
