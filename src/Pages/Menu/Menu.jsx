@@ -10,7 +10,7 @@ import allTimeChillerImage from "../../assets/alltimechiller.png";
 import feedCoffeesImage from "../../assets/feedcoffees.png";
 import allTimeDelightImage from "../../assets/alltimedelight.png";
 
-function Menu({ onHomeClick }) {
+function Menu({ onHomeClick }) { 
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("hotclassic"); // Default tab
   const navigate = useNavigate();
