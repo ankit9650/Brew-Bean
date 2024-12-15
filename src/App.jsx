@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Herosection from './Components/Herosection';
-import Menu from './Components/Menu';
+import Herosection from '../../Brew-Bean/src/Pages/Home/Herosection';
+import Menu from '../../Brew-Bean/src/Pages/Menu/Menu';
 import Footer from './Components/Footer';
 import Navbar from './Components/Navbar';
 import NotFound from './Components/NotFound';
-import Eshop from './Components/E-shop'; // Import your E-Shop component
+import Eshop from '../../Brew-Bean/src/Pages/Eshop/E-shop'; // Import your E-Shop component
 import Cart from "./Components/Cart"; // Adjust the path as necessary
-import Checkout from "./Components/Checkout"; // Adjust the path as necessary
+import Checkout from "../../Brew-Bean/src/Pages/Payment/Checkout"; // Adjust the path as necessary
 import './App.css';
 
 function App() {

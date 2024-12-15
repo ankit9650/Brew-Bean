@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import ECard from "./ECard";
-import Cart from "./Cart"; // Ensure this is your Cart component
+import ECard from "../../Components/ECard";
+import Cart from "../../Components/Cart"; // Ensure this is your Cart component
 import { useNavigate } from "react-router-dom";
 
 function Eshop() {
@@ -18,11 +18,10 @@ function Eshop() {
     return () => clearTimeout(timer);
   }, []);
 
-  const addToCart = (item, quantity) => {
+  const addToCart = async (item, quantity) => {
+    // Update cart state locally first
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
-        (cartItem) => cartItem.title === item.title
-      );
+      const existingItem = prevItems.find((cartItem) => cartItem.title === item.title);
       if (existingItem) {
         return prevItems.map((cartItem) =>
           cartItem.title === item.title
@@ -32,7 +31,33 @@ function Eshop() {
       }
       return [...prevItems, { ...item, quantity }];
     });
+  
+    // Send the cart item to the backend (save to the database)
+    try {
+      const response = await fetch("http://localhost:5000/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: item.title,
+          description: item.description,
+          price: item.price,
+          quantity,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to add item to cart");
+      }
+  
+      const data = await response.json();
+      console.log("Cart item saved:", data);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
   };
+  
 
   // Calculate total price of items in cart
   const total = cartItems.reduce(

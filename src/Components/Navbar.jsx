@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { Link,useNavigate } from 'react-router-dom'; // Import useNavigate
 
 function Navbar({onEshopclick}) {
   const [scrolled, setScrolled] = useState(false);
@@ -34,12 +34,12 @@ function Navbar({onEshopclick}) {
         }`}
       >
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse">
+          <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
             <img src="src/assets/logo.png" className="h-8" alt="Logo" />
             <span className={`self-center text-2xl font-bold whitespace-nowrap ${scrolled ? 'text-white' : 'text-mainhead-heading'}`}>
               Brew & Beans
             </span>
-          </a>
+          </Link>
 
           <div className="flex items-center md:hidden space-x-3 rtl:space-x-reverse">
             <button
