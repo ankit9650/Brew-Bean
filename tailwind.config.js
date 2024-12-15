@@ -23,7 +23,8 @@ export default {
         body:"#F7F3EE",
         menu:{"para":"#8C746A"},
         footer:{"foot":"#8C746A"},
-        about:{"img":"#F7EADC"}
+        about:{"img":"#F7EADC"},
+        coffee: {"coco": "#997a65"}
       }
     },
     fontFamily: {

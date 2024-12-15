@@ -38,7 +38,7 @@ function About() {
                     About Us
                   </h6>
                   <div className="w-full flex-col justify-start lg:items-start items-center gap-3 flex">
-                    <h2 className="text-indigo-700 text-4xl font-bold leading-normal lg:text-start text-center">
+                    <h2 className="text-coffee-coco text-4xl font-bold leading-normal lg:text-start text-center">
                       The Tale of{" "}
                       <span className="text-mainhead-heading italic">
                         "Brew & Beans"
@@ -55,7 +55,7 @@ function About() {
                 </div>
                 <div className="w-full flex-col justify-center items-start gap-6 flex">
                   <div className="w-full justify-start items-center gap-8 grid md:grid-cols-2 grid-cols-1">
-                    <div className="w-full h-full p-3.5 rounded-xl border border-gray-200 hover:border-gray-400 transition-all duration-700 ease-in-out flex-col justify-start items-start gap-2.5 inline-flex">
+                    <div className="w-full h-full p-3.5 rounded-xl border border-gray-200 hover:border-mainhead-heading transition-all duration-700 ease-in-out flex-col justify-start items-start gap-2.5 inline-flex">
                       <h4 className="text-gray-900 text-2xl font-bold font-manrope leading-9">
                         10+ Stores
                       </h4>
@@ -92,7 +92,7 @@ function About() {
                   </div>
                 </div>
               </div>
-              <button className="sm:w-fit w-full group px-3.5 py-2 bg-body hover:bg-mainhead-heading rounded-lg shadow-[0px_1px_2px_0px_rgba(16,_24,_40,_0.05)] transition-all duration-700 ease-in-out justify-center items-center flex">
+              <button className="sm:w-fit border border-mainhead-heading w-full group px-3.5 py-2 bg-body hover:bg-mainhead-heading rounded-lg shadow-[0px_1px_2px_0px_rgba(16,_24,_40,_0.05)] transition-all duration-700 ease-in-out justify-center items-center flex">
                 <span className="px-1.5 text-mainhead-heading group-hover:text-body text-sm font-medium leading-6 group-hover:-translate-x-0.5 transition-all duration-700 ease-in-out">
                   Read More
                 </span>
