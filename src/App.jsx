@@ -5,9 +5,9 @@ import Menu from '../src/Pages/Menu/Menu';
 import Footer from './Components/Footer';
 import Navbar from './Components/Navbar';
 import NotFound from './Components/NotFound';
-import Eshop from '../../Brew-Bean/src/Pages/Eshop/E-shop'; // Import your E-Shop component
-import Cart from "./Components/Cart"; // Adjust the path as necessary
-import Checkout from "../../Brew-Bean/src/Pages/Payment/Checkout"; // Adjust the path as necessary
+import Eshop from '../src/Pages/Eshop/E-shop'; // Import your E-Shop component
+import Cart from "../src/Components/Cart"; // Adjust the path as necessary
+import Checkout from "../src/Pages/Payment/Checkout"; // Adjust the path as necessary
 import './App.css';
 
 function App() {
