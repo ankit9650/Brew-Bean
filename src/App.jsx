@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Herosection from '../../Brew-Bean/src/Pages/Home/Herosection';
+import Herosection from '../src/Pages/Home/Herosection';
 import Menu from '../../Brew-Bean/src/Pages/Menu/Menu';
 import Footer from './Components/Footer';
 import Navbar from './Components/Navbar';
