@@ -1,63 +1,43 @@
 import React, { useState, useEffect } from "react";
-import ECard from "../../Components/ECard";
-import Cart from "../../Components/Cart"; // Ensure this is your Cart component
+import { useDispatch, useSelector } from "react-redux";
+import { useAddToCartMutation } from "../../redux/services/cartApi";
+import { addItem } from "../../redux/reducers/cartSlice";
 import { useNavigate } from "react-router-dom";
+import ECard from "../../Components/ECard";
+import Cart from "../../Components/Cart";
 
 function Eshop() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(1);
-  const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const navigate = useNavigate(); // React Router's hook for navigation
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.cartItems);
+
+  const [addToCartApi] = useAddToCartMutation();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2000);
-
     return () => clearTimeout(timer);
   }, []);
 
   const addToCart = async (item, quantity) => {
-    // Update cart state locally first
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((cartItem) => cartItem.title === item.title);
-      if (existingItem) {
-        return prevItems.map((cartItem) =>
-          cartItem.title === item.title
-            ? { ...cartItem, quantity: cartItem.quantity + quantity }
-            : cartItem
-        );
-      }
-      return [...prevItems, { ...item, quantity }];
-    });
-  
-    // Send the cart item to the backend (save to the database)
+    dispatch(addItem({ ...item, quantity }));
+
     try {
-      const response = await fetch("http://localhost:5000/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: item.title,
-          description: item.description,
-          price: item.price,
-          quantity,
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to add item to cart");
-      }
-  
-      const data = await response.json();
-      console.log("Cart item saved:", data);
+      await addToCartApi({
+        title: item.title,
+        description: item.description,
+        price: item.price,
+        quantity,
+      }).unwrap();
     } catch (error) {
       console.error("Error adding to cart:", error);
     }
   };
-  
+
 
   // Calculate total price of items in cart
   const total = cartItems.reduce(
@@ -262,18 +242,12 @@ function Eshop() {
           <div className="hidden md:block">
             <ul className="flex items-center">
               <li>
-                <button
-                  onClick={handleHomeClick} // Home button scrolls to the Hero section
-                  className="block py-2 px-3 text-mainhead-heading"
-                >
+                <button className="block py-2 px-3 text-mainhead-heading" onClick={() => navigate("/")}>
                   Home
                 </button>
               </li>
               <li>
-                <button
-                  onClick={toggleCart}
-                  className="block py-2 px-3 flex items-center text-mainhead-heading"
-                >
+                <button className="block py-2 px-3 flex items-center text-mainhead-heading" onClick={() => setIsCartOpen(!isCartOpen)}>
                   <span className="mr-2">Cart</span>
                   <img
                     width="22px"
@@ -294,40 +268,22 @@ function Eshop() {
       </nav>
 
       <div role="tablist" className="tabs tabs-bordered">
-        <a
-          role="tab"
-          className={`tab ${
-            activeTab === 1 ? "tab-active" : "text-mainhead-heading"
-          }`}
-          onClick={() => setActiveTab(1)}
-        >
+        <a role="tab" className={`tab ${activeTab === 1 ? "tab-active" : "text-mainhead-heading"}`} onClick={() => setActiveTab(1)}>
           Coffee & Tea
         </a>
-        <a
-          role="tab"
-          className={`tab ${
-            activeTab === 2 ? "tab-active" : ""
-          } text-mainhead-heading`}
-          onClick={() => setActiveTab(2)}
-        >
+        <a role="tab" className={`tab ${activeTab === 2 ? "tab-active" : ""} text-mainhead-heading`} onClick={() => setActiveTab(2)}>
           Beverages
         </a>
-        <a
-          role="tab"
-          className={`tab ${
-            activeTab === 3 ? "tab-active" : ""
-          } text-mainhead-heading`}
-          onClick={() => setActiveTab(3)}
-        >
+        <a role="tab" className={`tab ${activeTab === 3 ? "tab-active" : ""} text-mainhead-heading`} onClick={() => setActiveTab(3)}>
           Mugs & Accessories
         </a>
       </div>
 
-      <div className="mt-4 overflow-hidden">{renderTabContent()}</div>
+      <div className="mt-4 overflow-hidden">
+      {renderTabContent()}
+      </div>
 
-      {isCartOpen && (
-        <Cart cartItems={cartItems} total={total} onClose={toggleCart} />
-      )}
+      {isCartOpen && <Cart cartItems={cartItems} total={total} onClose={() => setIsCartOpen(false)} />}
     </>
   );
 }

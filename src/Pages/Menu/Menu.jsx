@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useTypewriter from "../../Components/Hook/Typewriter";
 
 // Import images
-import logoImage from "../../../public/logo.png";
+import logoImage from "../../assets/logo.png";
 import menuHeadImage from "../../assets/menuhead.png";
 import hotClassicImage from "../../assets/hotclassic.png";
 import allTimeChillerImage from "../../assets/alltimechiller.png";
