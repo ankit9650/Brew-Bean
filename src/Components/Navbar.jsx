@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../../public/logo.png"; // Dynamic import for logo
+import logo from "../../public/assets/logo.png"; // Dynamic import for logo
 
 function Navbar({ onEshopclick }) {
   const [scrolled, setScrolled] = useState(false);
@@ -9,7 +9,7 @@ function Navbar({ onEshopclick }) {
 
   useEffect(() => {
     const handleScroll = () => {
-      const offset = window.scrollY;
+      const offset = window.scrollY; 
       setScrolled(offset > 50);
     };
 

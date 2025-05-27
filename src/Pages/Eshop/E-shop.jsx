@@ -1,63 +1,43 @@
 import React, { useState, useEffect } from "react";
-import ECard from "../../Components/ECard";
-import Cart from "../../Components/Cart"; // Ensure this is your Cart component
+import { useDispatch, useSelector } from "react-redux";
+import { useAddToCartMutation } from "../../redux/services/cartApi";
+import { addItem } from "../../redux/reducers/cartSlice";
 import { useNavigate } from "react-router-dom";
+import ECard from "../../Components/ECard";
+import Cart from "../../Components/Cart";
+import notFoundImage from "../../../public/assets/notFound.png"; // Adjust the path to your image
 
 function Eshop() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(1);
-  const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const navigate = useNavigate(); // React Router's hook for navigation
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.cartItems);
+
+  const [addToCartApi] = useAddToCartMutation();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2000);
-
     return () => clearTimeout(timer);
   }, []);
 
   const addToCart = async (item, quantity) => {
-    // Update cart state locally first
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((cartItem) => cartItem.title === item.title);
-      if (existingItem) {
-        return prevItems.map((cartItem) =>
-          cartItem.title === item.title
-            ? { ...cartItem, quantity: cartItem.quantity + quantity }
-            : cartItem
-        );
-      }
-      return [...prevItems, { ...item, quantity }];
-    });
-  
-    // Send the cart item to the backend (save to the database)
+    dispatch(addItem({ ...item, quantity }));
+
     try {
-      const response = await fetch("http://localhost:5000/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: item.title,
-          description: item.description,
-          price: item.price,
-          quantity,
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to add item to cart");
-      }
-  
-      const data = await response.json();
-      console.log("Cart item saved:", data);
+      await addToCartApi({
+        title: item.title,
+        description: item.description,
+        price: item.price,
+        quantity,
+      }).unwrap();
     } catch (error) {
       console.error("Error adding to cart:", error);
     }
   };
-  
 
   // Calculate total price of items in cart
   const total = cartItems.reduce(
@@ -82,9 +62,17 @@ function Eshop() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <span className="loading loading-infinity loading-lg bg-mainhead-heading" />
-        <div className="loader text-mainhead-heading">Welcome to E-Shop...</div>
+      <div className="flex flex-col items-center justify-center h-screen gap-2 bg-gray-50">
+        <div className="relative">
+          <img
+            src={notFoundImage}
+            alt="Loading..."
+            className="w-24 h-24 animate-slowBounce"
+          />
+        </div>
+        <div className="text-mainhead-heading text-xl font-semibold animate-pulse">
+          Welcome to E-Shop...
+        </div>
       </div>
     );
   }
@@ -248,6 +236,7 @@ function Eshop() {
         return null;
     }
   };
+
   return (
     <>
       <nav className="w-full z-20 top-0 start-0 transition-colors duration-300">
@@ -263,16 +252,16 @@ function Eshop() {
             <ul className="flex items-center">
               <li>
                 <button
-                  onClick={handleHomeClick} // Home button scrolls to the Hero section
                   className="block py-2 px-3 text-mainhead-heading"
+                  onClick={() => navigate("/")}
                 >
                   Home
                 </button>
               </li>
               <li>
                 <button
-                  onClick={toggleCart}
-                  className="block py-2 px-3 flex items-center text-mainhead-heading"
+                  className="py-2 px-3 flex items-center text-mainhead-heading"
+                  onClick={() => setIsCartOpen(!isCartOpen)}
                 >
                   <span className="mr-2">Cart</span>
                   <img
@@ -326,7 +315,11 @@ function Eshop() {
       <div className="mt-4 overflow-hidden">{renderTabContent()}</div>
 
       {isCartOpen && (
-        <Cart cartItems={cartItems} total={total} onClose={toggleCart} />
+        <Cart
+          cartItems={cartItems}
+          total={total}
+          onClose={() => setIsCartOpen(false)}
+        />
       )}
     </>
   );

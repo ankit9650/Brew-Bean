@@ -2,7 +2,7 @@ import React from "react";
 import OurBrews from "./OurBrews";
 import About from "./About";
 import Contact from "./Contact";
-import hero from "../../assets/hero.png"
+import hero from "../../../public/assets/hero.png"
 function Herosection({ onMenuClick }) {
   return (
     <>
