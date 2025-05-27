@@ -1,7 +1,7 @@
 // Components/NotFound.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import notFoundImage from '../assets/notFound.png'; // Adjust the path to your image
+import notFoundImage from '../../public/assets/notFound.png'; // Adjust the path to your image
 
 function NotFound() {
   return (

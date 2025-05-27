@@ -3,12 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useTypewriter from "../../Components/Hook/Typewriter";
 
 // Import images
-import logoImage from "../../assets/logo.png";
-import menuHeadImage from "../../assets/menuhead.png";
-import hotClassicImage from "../../assets/hotclassic.png";
-import allTimeChillerImage from "../../assets/alltimechiller.png";
-import feedCoffeesImage from "../../assets/feedcoffees.png";
-import allTimeDelightImage from "../../assets/alltimedelight.png";
+import logoImage from "../../../public/assets/logo.png";
+import menuHeadImage from "../../../public/assets/menuhead.png";
+import hotClassicImage from "../../../public/assets/hotclassic.png";
+import allTimeChillerImage from "../../../public/assets/alltimechiller.png";
+import feedCoffeesImage from "../../../public/assets/feedcoffees.png";
+import allTimeDelightImage from "../../../public/assets/alltimedelight.png";
 
 function Menu({ onHomeClick }) { 
   const [isLoading, setIsLoading] = useState(true);

@@ -5,7 +5,7 @@ import { addItem } from "../../redux/reducers/cartSlice";
 import { useNavigate } from "react-router-dom";
 import ECard from "../../Components/ECard";
 import Cart from "../../Components/Cart";
-import notFoundImage from "../../assets/notFound.png"; // Adjust the path to your image
+import notFoundImage from "../../../public/assets/notFound.png"; // Adjust the path to your image
 
 function Eshop() {
   const [isLoading, setIsLoading] = useState(true);
@@ -236,7 +236,7 @@ function Eshop() {
         return null;
     }
   };
-  
+
   return (
     <>
       <nav className="w-full z-20 top-0 start-0 transition-colors duration-300">
