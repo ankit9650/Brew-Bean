@@ -9,7 +9,7 @@ function Navbar({ onEshopclick }) {
 
   useEffect(() => {
     const handleScroll = () => {
-      const offset = window.scrollY;
+      const offset = window.scrollY; 
       setScrolled(offset > 50);
     };
 
