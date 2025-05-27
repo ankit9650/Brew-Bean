@@ -25,6 +25,10 @@ export default {
         footer:{"foot":"#8C746A"},
         about:{"img":"#F7EADC"},
         coffee: {"coco": "#997a65"}
+      },
+       animation: {
+        slowBounce: 'bounce 2.5s infinite', // slower bounce, 3s duration
+        fastBounce: 'bounce 0.5s infinite', // faster bounce
       }
     },
     fontFamily: {

@@ -5,6 +5,7 @@ import { addItem } from "../../redux/reducers/cartSlice";
 import { useNavigate } from "react-router-dom";
 import ECard from "../../Components/ECard";
 import Cart from "../../Components/Cart";
+import notFoundImage from "../../assets/notFound.png"; // Adjust the path to your image
 
 function Eshop() {
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +39,6 @@ function Eshop() {
     }
   };
 
-
   // Calculate total price of items in cart
   const total = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
@@ -62,9 +62,17 @@ function Eshop() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <span className="loading loading-infinity loading-lg bg-mainhead-heading" />
-        <div className="loader text-mainhead-heading">Welcome to E-Shop...</div>
+      <div className="flex flex-col items-center justify-center h-screen gap-2 bg-gray-50">
+        <div className="relative">
+          <img
+            src={notFoundImage}
+            alt="Loading..."
+            className="w-24 h-24 animate-slowBounce"
+          />
+        </div>
+        <div className="text-mainhead-heading text-xl font-semibold animate-pulse">
+          Welcome to E-Shop...
+        </div>
       </div>
     );
   }
@@ -228,6 +236,7 @@ function Eshop() {
         return null;
     }
   };
+  
   return (
     <>
       <nav className="w-full z-20 top-0 start-0 transition-colors duration-300">
@@ -242,12 +251,18 @@ function Eshop() {
           <div className="hidden md:block">
             <ul className="flex items-center">
               <li>
-                <button className="block py-2 px-3 text-mainhead-heading" onClick={() => navigate("/")}>
+                <button
+                  className="block py-2 px-3 text-mainhead-heading"
+                  onClick={() => navigate("/")}
+                >
                   Home
                 </button>
               </li>
               <li>
-                <button className="block py-2 px-3 flex items-center text-mainhead-heading" onClick={() => setIsCartOpen(!isCartOpen)}>
+                <button
+                  className="py-2 px-3 flex items-center text-mainhead-heading"
+                  onClick={() => setIsCartOpen(!isCartOpen)}
+                >
                   <span className="mr-2">Cart</span>
                   <img
                     width="22px"
@@ -268,22 +283,44 @@ function Eshop() {
       </nav>
 
       <div role="tablist" className="tabs tabs-bordered">
-        <a role="tab" className={`tab ${activeTab === 1 ? "tab-active" : "text-mainhead-heading"}`} onClick={() => setActiveTab(1)}>
+        <a
+          role="tab"
+          className={`tab ${
+            activeTab === 1 ? "tab-active" : "text-mainhead-heading"
+          }`}
+          onClick={() => setActiveTab(1)}
+        >
           Coffee & Tea
         </a>
-        <a role="tab" className={`tab ${activeTab === 2 ? "tab-active" : ""} text-mainhead-heading`} onClick={() => setActiveTab(2)}>
+        <a
+          role="tab"
+          className={`tab ${
+            activeTab === 2 ? "tab-active" : ""
+          } text-mainhead-heading`}
+          onClick={() => setActiveTab(2)}
+        >
           Beverages
         </a>
-        <a role="tab" className={`tab ${activeTab === 3 ? "tab-active" : ""} text-mainhead-heading`} onClick={() => setActiveTab(3)}>
+        <a
+          role="tab"
+          className={`tab ${
+            activeTab === 3 ? "tab-active" : ""
+          } text-mainhead-heading`}
+          onClick={() => setActiveTab(3)}
+        >
           Mugs & Accessories
         </a>
       </div>
 
-      <div className="mt-4 overflow-hidden">
-      {renderTabContent()}
-      </div>
+      <div className="mt-4 overflow-hidden">{renderTabContent()}</div>
 
-      {isCartOpen && <Cart cartItems={cartItems} total={total} onClose={() => setIsCartOpen(false)} />}
+      {isCartOpen && (
+        <Cart
+          cartItems={cartItems}
+          total={total}
+          onClose={() => setIsCartOpen(false)}
+        />
+      )}
     </>
   );
 }
