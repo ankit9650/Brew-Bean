@@ -1,9 +1,14 @@
-import React from "react";
-import OurBrews from "./OurBrews";
-import About from "./About";
-import Contact from "./Contact";
-import hero from "../../../public/assets/hero.png"
-function Herosection({ onMenuClick }) {
+import { useNavigate } from "react-router-dom"; // Correct import
+import hero from "../../../public/assets/hero.png";
+
+function Herosection() {
+  const navigate = useNavigate(); // Hook for navigation
+
+  // Function to navigate to /menu
+  const handleViewMenuClick = () => {
+    navigate("/menu");
+  };
+
   return (
     <>
       <div id="hero-section">
@@ -17,7 +22,7 @@ function Herosection({ onMenuClick }) {
                 "Savor every sip, discover every bean—where coffee meets craft at Brew & Bean."
               </p>
               <button
-                onClick={onMenuClick} 
+                onClick={handleViewMenuClick}
                 className="inline-flex bg-mainhead-button items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg"
               >
                 View Menu
@@ -36,15 +41,12 @@ function Herosection({ onMenuClick }) {
               </button>
             </div>
             <div className="hidden lg:mt-0 lg:col-span-5 lg:flex">
-              <img src={hero}  /> 
+              <img src={hero} alt="Hero" />
             </div>
           </div>
         </section>
 
         <hr />
-        <OurBrews />
-        <About />
-        <Contact />
       </div>
     </>
   );
