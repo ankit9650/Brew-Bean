@@ -10,37 +10,37 @@ const staticData = [
     id: 1,
     title: "Espresso",
     description: "A strong and bold coffee shot.",
-    imageUrl: "../public/assets/espresso.jpg",
+    imageUrl: "../assets/espresso.jpg",
   },
   {
     id: 2,
     title: "Cappuccino",
     description: "A creamy coffee with steamed milk foam.",
-    imageUrl: "/public/assets/capp.jpg",
+    imageUrl: "/assets/capp.jpg",
   },
   {
     id: 3,
     title: "Latte",
     description: "Smooth coffee with a lot of steamed milk.",
-    imageUrl: "/public/assets/latte.jpg",
+    imageUrl: "/assets/latte.jpg",
   },
   {
     id: 4,
     title: "Tea",
     description: "A soothing beverage for every occasion.",
-    imageUrl: "/public/assets/tea.jpg",
+    imageUrl: "/assets/tea.jpg",
   },
   {
     id: 5,
     title: "Mocha",
     description: "A delightful blend of chocolate and coffee.",
-    imageUrl: "/public/assets/mocha.jpeg",
+    imageUrl: "/assets/mocha.jpeg",
   },
   {
     id: 6,
     title: "Frappe",
     description: "A chilled coffee treat for warm days.",
-    imageUrl: "/public/assets/Frappe.jpg",
+    imageUrl: "/assets/Frappe.jpg",
   },
 ];
 
