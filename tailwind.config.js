@@ -24,7 +24,8 @@ export default {
         menu:{"para":"#8C746A"},
         footer:{"foot":"#8C746A"},
         about:{"img":"#F7EADC"},
-        coffee: {"coco": "#997a65"}
+        coffee: {"coco": "#997a65"},
+        darkchocolate: "#4E2728",
       },
        animation: {
         slowBounce: 'bounce 2.5s infinite', // slower bounce, 3s duration
