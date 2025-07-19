@@ -118,7 +118,7 @@ function About() {
               <div className="sm:w-[564px] w-full sm:h-[646px] h-full sm:bg-about-img rounded-3xl sm:border border-about-img relative">
                 <img
                   className="sm:mt-5 sm:ml-5 w-full h-full rounded-3xl object-cover "
-                  src="public/assets/about.jpg"
+                  src="/assets/about.jpg"
                   alt="about Us image"
                 />
               </div>
