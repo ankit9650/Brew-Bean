@@ -69,7 +69,7 @@ function Contact() {
 
         <div className="grid md:grid-cols-2 gap-8 py-8 px-6">
           <div className="text-center flex flex-col items-center justify-center">
-            <img src="public/assets/contact.png" className="shrink-0 w-5/6" alt="Contact us" />
+            <img src="/assets/contact.png" className="shrink-0 w-5/6" alt="Contact us" />
           </div>
 
           <form className="rounded-tl-3xl rounded-bl-3xl" onSubmit={handleSubmit}>
