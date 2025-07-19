@@ -1,8 +1,19 @@
 import React, { useState } from "react";
-import axios from "axios"; // Import axios
-import { ToastContainer, toast } from 'react-toastify';
-import { FaCheckCircle } from 'react-icons/fa';  // Import the tick icon from react-icons
-import 'react-toastify/dist/ReactToastify.css';  // Import styles for toastify
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPaperPlane,
+  faSpinner,
+  faPhone,
+  faEnvelope,
+  faMapMarkerAlt,
+  faUser,
+  faMobile,
+  faComment,
+} from "@fortawesome/free-solid-svg-icons";
+import "react-toastify/dist/ReactToastify.css";
+import CustomerReview from "./CustomerReview";
 
 function Contact() {
   const [formData, setFormData] = useState({
@@ -13,46 +24,32 @@ function Contact() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setLoading(true);
 
     try {
-      // POST request using axios
-      const response = await axios.post("http://localhost:5000/api/contact", formData);
-
-      console.log(response.status, response.data);
+      const response = await axios.post(
+        "http://localhost:5000/api/contact",
+        formData
+      );
 
       if (response.status === 201 || response.status === 200) {
-        setSuccess(true);  // Set success state
-        setFormData({ name: "", email: "", phone: "", message: "" });  // Reset form
-
-        // Show success toast notification with tick icon
-        toast.success(
-          <div className="flex items-center">           
-            Message Sent
-          </div>, 
-          {
-            autoClose: 5000,
-          }
-        );
-      } else {
-        setSuccess(false);
-        // Show error toast notification
-        toast.error(response.data.error || "Error submitting form", {
-          autoClose: 5000,
+        setFormData({ name: "", email: "", phone: "", message: "" });
+        toast.success("Your message has been sent successfully!", {
+          icon: (
+            <FontAwesomeIcon icon={faPaperPlane} className="text-green-500" />
+          ),
         });
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Something went wrong. Please try again.", {
-        autoClose: 5000,
-      });
+      toast.error(
+        error.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
     } finally {
-      setLoading(false);  // Hide loading spinner
+      setLoading(false);
     }
   };
 
@@ -62,85 +59,140 @@ function Contact() {
   };
 
   return (
-    <>
-      <div className="font-[sans-serif] max-w-6xl mx-auto relative bg-white shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] bg-transparent rounded-3xl overflow-hidden mt-4" id="contact">
-        <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-mainhead-button"></div>
-        <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-mainhead-button"></div>
+    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8" id="contact">
+      <div className="max-w-7xl mx-auto">
+        {/* Section Header */}
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-bold text-amber-900 mb-4">
+            Let's Talk Coffee
+          </h2>
+          <p className="text-lg text-amber-800 max-w-2xl mx-auto">
+            Have questions about our beans? Want to discuss wholesale? We're all
+            ears.
+          </p>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-8 py-8 px-6">
-          <div className="text-center flex flex-col items-center justify-center">
-            <img src="/assets/contact.png" className="shrink-0 w-5/6" alt="Contact us" />
+        {/* Grid Layout - 60/40 Split */}
+        <div className="grid lg:grid-cols-5 gap-8">
+          {/* Customer Reviews - 60% */}
+          <div className="lg:col-span-3 bg-darkchocolate  rounded-2xl shadow-sm  flex flex-col">
+            <CustomerReview />
           </div>
 
-          <form className="rounded-tl-3xl rounded-bl-3xl" onSubmit={handleSubmit}>
-            <h2 className="text-2xl text-mainhead-heading font-bold text-center mb-6">
-              Contact us
-            </h2>
+          {/* Contact Form - 40% */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm h-fit">
+            <h3 className="text-xl sm:text-2xl font-bold text-amber-900 mb-4">
+              Send Us a Message
+            </h3>
 
-            <div className="max-w-md mx-auto space-y-3 relative">
-              <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                className="w-full bg-gray-100 rounded-md py-3 px-4 text-sm outline-blue-600 focus-within:bg-transparent"
-                value={formData.name}
-                onChange={handleChange}
-              />
+            <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
+              <div className="space-y-4">
+                {/* Name */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                    <FontAwesomeIcon icon={faUser} />
+                  </div>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Your Name"
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-mainhead-heading rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                className="w-full bg-gray-100 rounded-md py-3 px-4 text-sm outline-blue-600 focus-within:bg-transparent"
-                value={formData.email}
-                onChange={handleChange}
-              />
+                {/* Email */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                    <FontAwesomeIcon icon={faEnvelope} />
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Your Email"
+                    className="w-full pl-10 pr-4 py-2 bg-amber-50 border border-mainhead-heading rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-              <input
-                type="text"
-                name="phone"
-                placeholder="Phone No."
-                className="w-full bg-gray-100 rounded-md py-3 px-4 text-sm outline-blue-600 focus-within:bg-transparent"
-                value={formData.phone}
-                onChange={handleChange}
-              />
+                {/* Phone */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                    <FontAwesomeIcon icon={faMobile} />
+                  </div>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="Phone Number (Optional)"
+                    className="w-full pl-10 pr-4 py-2 bg-amber-50 border border-mainhead-heading rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition"
+                    value={formData.phone}
+                    onChange={handleChange}
+                  />
+                </div>
 
-              <textarea
-                name="message"
-                placeholder="Message"
-                rows="6"
-                className="w-full bg-gray-100 rounded-md px-4 text-sm pt-3 outline-blue-600 focus-within:bg-transparent"
-                value={formData.message}
-                onChange={handleChange}
-              ></textarea>
+                {/* Message */}
+                <div className="relative">
+                  <div className="absolute top-3 left-3 text-amber-600">
+                    <FontAwesomeIcon icon={faComment} />
+                  </div>
+                  <textarea
+                    name="message"
+                    placeholder="Your Message"
+                    rows="4"
+                    className="w-full pl-10 pr-4 py-2 bg-amber-50 border border-mainhead-heading rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                  ></textarea>
+                </div>
+              </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="sm:w-[200px] w-full group px-3.5 py-2 bg-body hover:bg-mainhead-heading rounded-lg shadow-[0px_1px_2px_0px_rgba(16,_24,_40,_0.05)] transition-all duration-700 ease-in-out justify-center items-center flex mx-auto"
                 disabled={loading}
+                className={`w-full py-2 px-4 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-2 ${
+                  loading ? "bg-amber-400" : "bg-amber-600 hover:bg-amber-700"
+                }`}
               >
-                <span className="px-1.5 text-mainhead-heading group-hover:text-body text-sm font-semibold leading-6 group-hover:-translate-x-0.5 transition-all duration-700 ease-in-out">
-                  {loading ? "Submitting..." : "Submit"}
-                </span>
+                {loading ? (
+                  <>
+                    <FontAwesomeIcon
+                      icon={faSpinner}
+                      className="animate-spin"
+                    />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faPaperPlane} />
+                    Send Message
+                  </>
+                )}
               </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
 
-      {/* Add ToastContainer for toast notifications */}
+      {/* Toast Container */}
       <ToastContainer
-        position="top-right"
+        position="top-center"
         autoClose={5000}
         hideProgressBar={false}
-        newestOnTop
+        newestOnTop={false}
         closeOnClick
         rtl={false}
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        toastClassName="shadow-lg"
       />
-    </>
+    </div>
   );
 }
 
