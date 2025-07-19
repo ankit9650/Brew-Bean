@@ -141,7 +141,7 @@ function Eshop() {
                 price="150"
                 addToCart={addToCart}
               />
-              <ECard
+              <ECard 
                 image="https://snackstar.in/cdn/shop/products/532b3a20-33f9-495f-b8e5-c3f9bb769888.jpg?v=1598346308"
                 title="Monster Energy Drink"
                 description="Fueling our athletes, musicians, and fans, Monster Energy produces a variety of energy drinks, brewed coffee, hydrating sports drinks, juices and teas."
