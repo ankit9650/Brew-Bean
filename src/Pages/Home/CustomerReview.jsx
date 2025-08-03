@@ -12,7 +12,7 @@ import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 const reviews = [
   {
     id: 1,
-    name: "Ankit Prabhakeer",
+    name: "Ankit Prabhaker",
     role: "Coffee Shop Owner",
     rating: 5,
     review:

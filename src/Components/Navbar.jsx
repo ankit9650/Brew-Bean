@@ -75,6 +75,7 @@ function Navbar({ onEshopclick }) {
             } w-full md:flex md:w-auto md:items-center`}
           >
             <ul className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0 w-full justify-end p-4 md:p-0">
+              
               <li>
                 <button
                   onClick={handleEshopClick}
