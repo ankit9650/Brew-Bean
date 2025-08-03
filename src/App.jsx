@@ -1,47 +1,67 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 import Menu from "../src/Pages/Menu/Menu";
 import Footer from "./Components/Footer";
 import Navbar from "./Components/Navbar";
 import NotFound from "./Components/NotFound";
-import Eshop from "../src/Pages/Eshop/E-shop"; // Import your E-Shop component
-import Cart from "../src/Components/Cart"; // Adjust the path as necessary
-import Checkout from "../src/Pages/Payment/Checkout"; // Adjust the path as necessary
+import Eshop from "../src/Pages/Eshop/E-shop";
+import Cart from "../src/Components/Cart";
+import Checkout from "../src/Pages/Payment/Checkout";
 import "./App.css";
 import Home from "./Pages/Home/Home";
+import VoiceAssistant from "./Pages/AiFeatures/VoiceAssistant";
+import { toast } from "react-toastify";
 
-function App() {
-  const [showMenu, setShowMenu] = useState(false);
+// Wrapper component so useNavigate can be used
+const AppWrapper = () => {
+  const navigate = useNavigate();
 
-  // Function to handle Home button click from Menu component
-  const handleHomeClick = () => {
-    setShowMenu(false); // Set showMenu to false to show HeroSection again
+  const handleVoiceCommand = (text) => {
+    const command = text.toLowerCase();
+
+    if (/menu|our brews|show menu/.test(command)) {
+      navigate("/menu");
+    } else if (/home|go home/.test(command)) {
+      navigate("/");
+    } else if (/cart|shopping cart|open cart/.test(command)) {
+      navigate("/cart");
+    } else if (/checkout|pay/.test(command)) {
+      navigate("/checkout");
+    } else if (/shop|e-shop|open shop/.test(command)) {
+      navigate("/eshop");
+    } else {
+      toast.warn("❓ Sorry, I didn’t catch that command.");
+      console.log("Command not recognized.");
+    }
   };
+  const hideNavbarRoutes = ["/menu", "/eshop"]; // add other routes where you want to hide it
 
   return (
-    <Router>
-      {/* Define the routes */}
+    <>
+      {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
+      <VoiceAssistant onCommandDetected={handleVoiceCommand} />
       <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <Navbar />
-              <Home />
-            </>
-          }
-        />
-        <Route path="/eshop" element={<Eshop />} /> {/* Add E-Shop route */}
-        <Route path="/cart" element={<Cart />} /> {/* Add Cart route */}
-        <Route path="/menu" element= {<Menu/>}/>
-        <Route path="/checkout" element={<Checkout />} />{" "}
-        {/* Add Checkout route */}
-        {/* Catch-all route for non-existing paths */}
+        <Route path="/" element={<Home />} />
+        <Route path="/eshop" element={<Eshop />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-
-      {/* Footer will always be rendered */}
       <Footer />
+    </>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AppWrapper />
     </Router>
   );
 }
