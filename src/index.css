@@ -1,3 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-body bg-brand-cream text-brand-espresso transition-colors duration-500;
+  }
+
+  .dark body {
+    @apply bg-[#1a0f0b] text-brand-cream;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    @apply bg-brand-caramel/30 text-brand-espresso;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-caramel ring-offset-2;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-brand-espresso hover:bg-brand-bean text-white rounded-xl font-semibold transition-colors shadow-coffee;
+  }
+
+  .btn-outline {
+    @apply px-6 py-3 border-2 border-brand-warm text-brand-warm hover:bg-brand-warm hover:text-white rounded-xl font-semibold transition-all;
+  }
+
+  .card-coffee {
+    @apply bg-white rounded-2xl shadow-coffee border border-brand-cream overflow-hidden dark:bg-[#241712] dark:border-white/10;
+  }
+
+  .input-coffee {
+    @apply w-full px-4 py-3 border border-brand-latte rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-caramel text-sm transition bg-white dark:bg-white/5 dark:border-white/15 dark:text-brand-cream;
+  }
+
+  /* Frosted glass surface — used by navbar, sliders, cards */
+  .glass {
+    @apply bg-white/60 dark:bg-[#2b1a14]/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-glass;
+  }
+
+  .glass-dark {
+    @apply bg-[#2b1a14]/55 backdrop-blur-xl border border-white/10 shadow-glass;
+  }
+
+  /* Caramel gradient text for headline accents */
+  .text-caramel-gradient {
+    @apply bg-caramel-gradient bg-clip-text text-transparent;
+  }
+
+  /* Premium button shine sweep on hover */
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+  }
+  .btn-shine:hover::after {
+    transform: translateX(120%);
+  }
+
+  /* Skeleton loading shimmer */
+  .skeleton-coffee {
+    @apply bg-brand-latte/40 dark:bg-white/10 rounded-xl;
+    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s linear infinite;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+}
+
+/* Page transition */
+.page-enter {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

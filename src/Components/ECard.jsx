@@ -1,61 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { useDispatch } from "react-redux";
+import { addItem } from "../redux/reducers/cartSlice";
+import { toast } from "react-toastify";
 
-function ECard({ image, title, description, price, addToCart }) {
-    // State to manage the quantity
-    const [quantity, setQuantity] = useState(1);
+function ECard({ id, image, title, description, price }) {
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const dispatch = useDispatch();
 
-    // Function to increase quantity
-    const increaseQuantity = () => {
-        setQuantity(prevQuantity => prevQuantity + 1);
-    };
+  const parsedPrice = parseFloat(price);
 
-    // Function to decrease quantity, ensuring it doesn't go below 1
-    const decreaseQuantity = () => {
-        setQuantity(prevQuantity => (prevQuantity > 1 ? prevQuantity - 1 : 1));
-    };
+  const handleAddToCart = () => {
+    dispatch(addItem({
+      id: id || title,
+      title,
+      price: parsedPrice,
+      quantity,
+      image,
+    }));
+    toast.success(`${title} added to cart!`, { autoClose: 2000 });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
 
-    // Function to handle adding to cart
-    const handleAddToCart = () => {
-        addToCart({ title, price: parseFloat(price) }, quantity); // Pass the item and quantity to addToCart
-    };
+  return (
+    <motion.div
+      className="bg-white rounded-2xl shadow-coffee hover:shadow-coffee-lg transition-all duration-300 overflow-hidden w-72 flex flex-col border border-brand-cream"
+      whileHover={{ y: -4 }}
+      layout
+    >
+      <div className="relative h-48 overflow-hidden">
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          loading="lazy"
+        />
+      </div>
 
-    return (
-        <div className="card bg-mainhead-heading text-body w-96 shadow-xl">
-            <figure className="flex justify-center">
-                <img
-                    src={image}
-                    alt={title} // Use title for alt attribute for better accessibility
-                    className="object-cover" // Optional: To maintain image aspect ratio
-                />
-            </figure>
-            <div className="card-body text-center">
-                <h2 className="card-title justify-center">{title}</h2>
-                <p>{description}</p>
+      <div className="p-4 flex flex-col flex-1">
+        <h2 className="font-bold text-brand-dark text-base leading-snug mb-1">{title}</h2>
+        <p className="text-brand-medium text-xs leading-relaxed flex-1 mb-3 line-clamp-2">{description}</p>
 
-                {/* Flex container for quantity selector, price, and add to cart button */}
-                <div className="card-actions flex items-center justify-between text-white mt-4">
-                    {/* Quantity controls */}
-                    <div className="flex items-center space-x-2">
-                        <button onClick={decreaseQuantity} className="btn btn-sm btn-outline hover:bg-white hover:text-black">
-                            -
-                        </button>
-                        <span className="text-lg font-bold">{quantity}</span>
-                        <button onClick={increaseQuantity} className="btn btn-sm btn-outline hover:bg-white hover:text-black">
-                            +
-                        </button>
-                    </div>
+        <div className="flex items-center justify-between gap-2">
+          {/* Quantity */}
+          <div className="flex items-center gap-1 bg-brand-light rounded-lg p-1">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="w-7 h-7 rounded-md hover:bg-brand-cream flex items-center justify-center text-brand-medium font-bold transition-colors"
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span className="w-6 text-center text-sm font-bold text-brand-dark">{quantity}</span>
+            <button
+              onClick={() => setQuantity((q) => q + 1)}
+              className="w-7 h-7 rounded-md hover:bg-brand-cream flex items-center justify-center text-brand-medium font-bold transition-colors"
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
 
-                    {/* Price */}
-                    <p className="font-extrabold text-lg mx-4">₹ {price}</p>
+          <span className="font-extrabold text-brand-warm text-base">₹{parsedPrice}</span>
 
-                    {/* Add to Cart Button */}
-                    <button onClick={handleAddToCart} className="btn btn-sm bg-transparent btn-outline hover:bg-white hover:text-black">
-                        <span>Add to Cart</span>
-                    </button>
-                </div>
-            </div>
+          <motion.button
+            onClick={handleAddToCart}
+            className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+              added
+                ? "bg-green-500 text-white"
+                : "bg-brand-dark hover:bg-brand-espresso text-white"
+            }`}
+            whileTap={{ scale: 0.95 }}
+          >
+            {added ? "Added!" : "Add"}
+          </motion.button>
         </div>
-    );
+      </div>
+    </motion.div>
+  );
 }
 
 export default ECard;
