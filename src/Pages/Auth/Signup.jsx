@@ -7,6 +7,28 @@ import { useRegisterMutation } from "../../redux/services/authApi";
 import { setCredentials } from "../../redux/reducers/authSlice";
 import logo from "../../../public/assets/logo.png";
 
+function SignupField({ id, label, type = "text", placeholder, extra, value, onChange, error, showPassword }) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-brand-dark mb-1.5">{label}</label>
+      <div className="relative">
+        <input
+          id={id}
+          name={id}
+          type={id === "password" || id === "confirmPassword" ? (showPassword ? "text" : "password") : type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-warm text-sm transition ${
+            error ? "border-red-400 bg-red-50" : "border-brand-cream"
+          } ${extra || ""}`}
+        />
+      </div>
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
+
 function Signup() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -53,26 +75,6 @@ function Signup() {
     }
   };
 
-  const Field = ({ id, label, type = "text", placeholder, extra }) => (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-brand-dark mb-1.5">{label}</label>
-      <div className="relative">
-        <input
-          id={id}
-          name={id}
-          type={id === "password" || id === "confirmPassword" ? (showPassword ? "text" : "password") : type}
-          value={form[id]}
-          onChange={handleChange}
-          placeholder={placeholder}
-          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-warm text-sm transition ${
-            errors[id] ? "border-red-400 bg-red-50" : "border-brand-cream"
-          } ${extra || ""}`}
-        />
-      </div>
-      {errors[id] && <p className="mt-1 text-xs text-red-500">{errors[id]}</p>}
-    </div>
-  );
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-light px-4 py-12">
       <motion.div
@@ -91,8 +93,8 @@ function Signup() {
 
         <div className="bg-white rounded-2xl shadow-coffee p-8">
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-            <Field id="name" label="Full Name" placeholder="Your name" />
-            <Field id="email" label="Email address" type="email" placeholder="you@example.com" />
+            <SignupField id="name" label="Full Name" placeholder="Your name" value={form.name} onChange={handleChange} error={errors.name} />
+            <SignupField id="email" label="Email address" type="email" placeholder="you@example.com" value={form.email} onChange={handleChange} error={errors.email} />
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="password" className="text-sm font-medium text-brand-dark">Password</label>
@@ -111,7 +113,7 @@ function Signup() {
               />
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
             </div>
-            <Field id="confirmPassword" label="Confirm Password" placeholder="Re-enter password" />
+            <SignupField id="confirmPassword" label="Confirm Password" placeholder="Re-enter password" value={form.confirmPassword} onChange={handleChange} error={errors.confirmPassword} showPassword={showPassword} />
 
             <motion.button
               type="submit"
