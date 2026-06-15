@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
@@ -56,9 +56,19 @@ function Profile() {
               {user?.name}
             </h1>
             <p className="text-brand-medium dark:text-brand-latte/80 text-sm">{user?.email}</p>
-            <span className="inline-block mt-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-brand-espresso/10 dark:bg-brand-caramel/15 text-brand-espresso dark:text-brand-caramel rounded-full">
-              {user?.role || "customer"}
-            </span>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-brand-espresso/10 dark:bg-brand-caramel/15 text-brand-espresso dark:text-brand-caramel rounded-full">
+                {user?.role || "customer"}
+              </span>
+              {user?.role === "admin" && (
+                <Link
+                  to="/admin"
+                  className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-brand-espresso text-white dark:bg-brand-caramel dark:text-brand-espresso rounded-full hover:opacity-80 transition-opacity"
+                >
+                  Admin Panel →
+                </Link>
+              )}
+            </div>
           </div>
           <motion.button
             onClick={handleLogout}

@@ -6,6 +6,7 @@ import { selectCartCount } from "../redux/reducers/cartSlice";
 import { selectIsAuthenticated, selectCurrentUser } from "../redux/reducers/authSlice";
 import { useTheme } from "../hooks/useTheme";
 import ThemeToggle from "./ThemeToggle";
+import NotificationBell from "./NotificationBell";
 import logo from "../../public/assets/logo.png";
 import Cart from "./Cart";
 
@@ -93,6 +94,11 @@ function Navbar() {
             </Link>
 
             <ThemeToggle isDark={isDark} onToggle={toggleTheme} className="ml-1" />
+
+            {/* Notification bell — only shown when logged in */}
+            {isAuthenticated && (
+              <NotificationBell iconClass={scrolled ? "text-brand-espresso dark:text-brand-cream" : "text-brand-cream"} />
+            )}
 
             {/* Cart */}
             <button

@@ -16,7 +16,8 @@ import Footer from "./Components/Footer";
 import NotFound from "./Components/NotFound";
 import VoiceAssistant from "./Pages/AiFeatures/VoiceAssistant";
 import PageLoader from "./Components/PageLoader";
-import { selectIsAuthenticated } from "./redux/reducers/authSlice";
+import { selectIsAuthenticated, selectCurrentUser } from "./redux/reducers/authSlice";
+import { NotificationPoller } from "./hooks/NotificationPoller";
 
 // Lazy-loaded routes for code splitting
 const Home = lazy(() => import("./Pages/Home/Home"));
@@ -25,9 +26,10 @@ const Menu = lazy(() => import("./Pages/Menu/Menu"));
 const Checkout = lazy(() => import("./Pages/Payment/Checkout"));
 const Login = lazy(() => import("./Pages/Auth/Login"));
 const Signup = lazy(() => import("./Pages/Auth/Signup"));
-const Profile = lazy(() => import("./Pages/Auth/Profile"));
+const Profile    = lazy(() => import("./Pages/Auth/Profile"));
+const AdminPanel = lazy(() => import("./Pages/Admin/AdminPanel"));
 
-// Routes that hide the main Navbar (they have their own)
+// Routes that hide the main Navbar/Footer (they have their own layout)
 const NAVBAR_HIDDEN_ROUTES = new Set(["/menu", "/eshop", "/login", "/signup"]);
 
 // Redirect authenticated users away from auth pages
@@ -40,6 +42,15 @@ const GuestRoute = ({ children }) => {
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
+
+// Require admin role — redirects customers to home, guests to login
+const AdminRoute = ({ children }) => {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const user = useSelector(selectCurrentUser);
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== "admin") return <Navigate to="/" replace />;
+  return children;
 };
 
 const AppWrapper = () => {
@@ -57,10 +68,13 @@ const AppWrapper = () => {
     else toast.warn("Sorry, I didn't catch that command.");
   };
 
-  const hideNavbar = NAVBAR_HIDDEN_ROUTES.has(location.pathname);
+  const isAdminPath = location.pathname.startsWith("/admin");
+  const hideNavbar  = NAVBAR_HIDDEN_ROUTES.has(location.pathname) || isAdminPath;
+
 
   return (
     <>
+      <NotificationPoller />
       {!hideNavbar && <Navbar />}
       <VoiceAssistant onCommandDetected={handleVoiceCommand} />
 
@@ -95,14 +109,22 @@ const AppWrapper = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPanel />
+              </AdminRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
 
-      {!NAVBAR_HIDDEN_ROUTES.has(location.pathname) && <Footer />}
+      {!hideNavbar && <Footer />}
 
       <ToastContainer
-        position="top-center"
+        position="top-right"
         autoClose={4000}
         hideProgressBar={false}
         newestOnTop

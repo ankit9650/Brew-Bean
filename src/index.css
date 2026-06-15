@@ -23,6 +23,22 @@
     box-sizing: border-box;
   }
 
+  /* Browsers don't inherit color on form elements by default — force it so
+     Tailwind text-* classes and parent color values work correctly. */
+  input,
+  textarea,
+  select {
+    color: inherit;
+  }
+
+  /* Prevent Chrome autofill from overriding text color */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: inherit;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+
   ::selection {
     @apply bg-brand-caramel/30 text-brand-espresso;
   }
@@ -46,7 +62,7 @@
   }
 
   .input-coffee {
-    @apply w-full px-4 py-3 border border-brand-latte rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-caramel text-sm transition bg-white dark:bg-white/5 dark:border-white/15 dark:text-brand-cream;
+    @apply w-full px-4 py-3 border border-brand-latte rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-caramel text-sm transition bg-white text-brand-espresso placeholder-brand-latte dark:bg-white/5 dark:border-white/15 dark:text-brand-cream dark:placeholder-brand-latte/40;
   }
 
   /* Frosted glass surface — used by navbar, sliders, cards */
