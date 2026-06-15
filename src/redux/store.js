@@ -4,6 +4,7 @@ import { authApi } from "./services/authApi";
 import { contactApi } from "./services/contactservice";
 import { orderApi } from "./services/orderApi";
 import { adminApi } from "./services/adminApi";
+import { paymentApi } from "./services/paymentApi";
 import cartReducer from "./reducers/cartSlice";
 import authReducer from "./reducers/authSlice";
 import notificationReducer from "./reducers/notificationSlice";
@@ -15,6 +16,7 @@ export const store = configureStore({
     [contactApi.reducerPath]: contactApi.reducer,
     [orderApi.reducerPath]: orderApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
+    [paymentApi.reducerPath]: paymentApi.reducer,
     cart: cartReducer,
     auth: authReducer,
     notifications: notificationReducer,
@@ -25,7 +27,8 @@ export const store = configureStore({
       authApi.middleware,
       contactApi.middleware,
       orderApi.middleware,
-      adminApi.middleware
+      adminApi.middleware,
+      paymentApi.middleware
     ),
 });
 

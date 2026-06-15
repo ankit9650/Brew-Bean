@@ -4,31 +4,45 @@ import { useSelector, useDispatch } from "react-redux";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { selectCartItems, selectCartTotal, clearCart } from "../../redux/reducers/cartSlice";
-import { selectIsAuthenticated } from "../../redux/reducers/authSlice";
+import { selectIsAuthenticated, selectCurrentUser } from "../../redux/reducers/authSlice";
 import { useAddToCartMutation } from "../../redux/services/cartApi";
 import { useCreateOrderMutation } from "../../redux/services/orderApi";
+import {
+  useCreateRazorpayOrderMutation,
+  useVerifyPaymentMutation,
+} from "../../redux/services/paymentApi";
 
 const PAYMENT_METHODS = [
-  { id: "upi", label: "UPI", icon: "📱" },
-  { id: "card", label: "Credit / Debit Card", icon: "💳" },
-  { id: "cod", label: "Cash on Delivery", icon: "💵" },
+  { id: "upi",  label: "UPI / Card / Netbanking", icon: "💳", razorpay: true },
+  { id: "cod",  label: "Cash on Delivery",         icon: "💵", razorpay: false },
 ];
 
+const loadRazorpayScript = () =>
+  new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+
 function Checkout() {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const cartItems = useSelector(selectCartItems);
-  const total = useSelector(selectCartTotal);
-  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const navigate    = useNavigate();
+  const dispatch    = useDispatch();
+  const cartItems   = useSelector(selectCartItems);
+  const total       = useSelector(selectCartTotal);
+  const isAuth      = useSelector(selectIsAuthenticated);
+  const user        = useSelector(selectCurrentUser);
 
-  const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [upiId, setUpiId] = useState("");
-  const [address, setAddress] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [address, setAddress]             = useState("");
+  const [isProcessing, setIsProcessing]   = useState(false);
 
-  const [addToCart] = useAddToCartMutation();
-  const [createOrder] = useCreateOrderMutation();
+  const [addToCart]            = useAddToCartMutation();
+  const [createOrder]          = useCreateOrderMutation();
+  const [createRazorpayOrder]  = useCreateRazorpayOrderMutation();
+  const [verifyPayment]        = useVerifyPaymentMutation();
 
   if (cartItems.length === 0) {
     return (
@@ -46,47 +60,113 @@ function Checkout() {
     );
   }
 
-  const handlePlaceOrder = async () => {
-    if (!paymentMethod) return toast.warn("Please select a payment method");
-    if (!address.trim()) return toast.warn("Please enter a delivery address");
-    if (paymentMethod === "upi" && !upiId.trim()) return toast.warn("Please enter your UPI ID");
+  const syncCartToServer = async () => {
+    for (const item of cartItems) {
+      await addToCart({
+        product_name:  item.title,
+        unit_price:    item.price,
+        quantity:      item.quantity,
+        product_image: item.image || null,
+      }).unwrap();
+    }
+  };
 
-    if (!isAuthenticated) {
+  const finalizeOrder = async ({ razorpay_payment_id = null, payment_status = "pending" } = {}) => {
+    const result = await createOrder({
+      payment_method:      paymentMethod,
+      delivery_address:    address.trim(),
+      razorpay_payment_id,
+      payment_status,
+    }).unwrap();
+
+    dispatch(clearCart());
+    toast.success(
+      `Order #${result?.data?.id ?? ""} placed! We'll notify you when it's ready.`
+    );
+    navigate("/");
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!paymentMethod)    return toast.warn("Please select a payment method");
+    if (!address.trim())   return toast.warn("Please enter a delivery address");
+
+    if (!isAuth) {
       toast.info("Please sign in to place an order");
       return navigate("/login", { state: { from: "/checkout" } });
     }
 
     setIsProcessing(true);
+
     try {
-      // Sync the local cart to the server cart. Local ids are slugs, not DB
-      // ids, so product_id is omitted — the server keys items by name/price.
-      for (const item of cartItems) {
-        await addToCart({
-          product_name: item.title,
-          unit_price: item.price,
-          quantity: item.quantity,
-          product_image: item.image || null,
-        }).unwrap();
+      await syncCartToServer();
+
+      if (paymentMethod === "cod") {
+        await finalizeOrder();
+        return;
       }
 
-      // Create the order — the server snapshots the cart and clears it atomically
-      const result = await createOrder({
-        payment_method: paymentMethod,
-        delivery_address: address.trim(),
-        notes: paymentMethod === "upi" ? `UPI: ${upiId.trim()}` : null,
+      // ── Razorpay flow ────────────────────────────────────────────────────────
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        toast.error("Razorpay failed to load. Check your internet connection.");
+        return;
+      }
+
+      const rzpOrderRes = await createRazorpayOrder({
+        amount_paise: Math.round(total * 100),
       }).unwrap();
 
-      dispatch(clearCart());
-      toast.success(
-        `Order #${result?.data?.id ?? ""} placed successfully! We'll notify you when it's ready.`
-      );
-      navigate("/");
+      const options = {
+        key:         import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount:      rzpOrderRes.data.amount,
+        currency:    rzpOrderRes.data.currency,
+        name:        "Brew & Bean",
+        description: `Order of ${cartItems.length} item${cartItems.length !== 1 ? "s" : ""}`,
+        order_id:    rzpOrderRes.data.order_id,
+        prefill: {
+          name:  user?.name  || "",
+          email: user?.email || "",
+        },
+        theme: { color: "#7B4F2E" },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+            toast.info("Payment cancelled");
+          },
+        },
+        handler: async (response) => {
+          try {
+            await verifyPayment({
+              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature:  response.razorpay_signature,
+            }).unwrap();
+
+            await finalizeOrder({
+              razorpay_payment_id: response.razorpay_payment_id,
+              payment_status:      "paid",
+            });
+          } catch {
+            toast.error("Payment verification failed. Contact support with your payment ID.");
+            setIsProcessing(false);
+          }
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", (resp) => {
+        setIsProcessing(false);
+        toast.error(`Payment failed: ${resp.error.description}`);
+      });
+      rzp.open();
+
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to place order. Please try again.");
-    } finally {
+      toast.error(err?.data?.message || "Something went wrong. Please try again.");
       setIsProcessing(false);
     }
   };
+
+  const selectedMethod = PAYMENT_METHODS.find((m) => m.id === paymentMethod);
 
   return (
     <div className="min-h-screen bg-brand-light py-10 px-4">
@@ -99,7 +179,9 @@ function Checkout() {
           {/* Header */}
           <div className="bg-brand-dark text-white p-6">
             <h1 className="text-2xl font-bold font-serif">Checkout</h1>
-            <p className="text-brand-latte text-sm mt-1">{cartItems.length} item{cartItems.length !== 1 ? "s" : ""} in your order</p>
+            <p className="text-brand-latte text-sm mt-1">
+              {cartItems.length} item{cartItems.length !== 1 ? "s" : ""} in your order
+            </p>
           </div>
 
           <div className="p-6 space-y-6">
@@ -159,9 +241,16 @@ function Checkout() {
                       className="sr-only"
                     />
                     <span className="text-2xl">{icon}</span>
-                    <span className="font-medium text-brand-dark text-sm">{label}</span>
+                    <div className="flex-1">
+                      <span className="font-medium text-brand-dark text-sm">{label}</span>
+                      {id === "upi" && (
+                        <p className="text-xs text-brand-medium mt-0.5">
+                          Secure payment via Razorpay — UPI, cards, netbanking &amp; wallets
+                        </p>
+                      )}
+                    </div>
                     {paymentMethod === id && (
-                      <svg className="ml-auto w-5 h-5 text-brand-warm" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-brand-warm flex-none" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     )}
@@ -169,30 +258,18 @@ function Checkout() {
                 ))}
               </div>
 
+              {/* Razorpay trust badge */}
               {paymentMethod === "upi" && (
-                <motion.div
-                  className="mt-3"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                >
-                  <input
-                    type="text"
-                    placeholder="yourname@upi"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    className="w-full px-4 py-3 border border-brand-cream rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-warm text-sm"
-                  />
-                </motion.div>
-              )}
-
-              {paymentMethod === "card" && (
-                <motion.div
-                  className="mt-3 p-4 bg-amber-50 rounded-xl border border-amber-200 text-sm text-amber-800"
+                <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  className="mt-3 text-xs text-brand-medium flex items-center gap-1.5"
                 >
-                  <strong>Note:</strong> Card payments will be processed securely at the point of delivery via a POS terminal. We do not store card details online.
-                </motion.div>
+                  <svg className="w-3.5 h-3.5 text-green-500 flex-none" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                  Payments are secured and processed by Razorpay. We never store your card details.
+                </motion.p>
               )}
             </section>
 
@@ -206,8 +283,10 @@ function Checkout() {
               {isProcessing ? (
                 <>
                   <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  Processing...
+                  Processing…
                 </>
+              ) : selectedMethod?.razorpay ? (
+                `Pay ₹${total.toFixed(2)} via Razorpay`
               ) : (
                 `Place Order — ₹${total.toFixed(2)}`
               )}
