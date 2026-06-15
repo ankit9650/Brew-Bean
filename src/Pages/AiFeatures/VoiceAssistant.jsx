@@ -45,22 +45,23 @@ const VoiceAssistant = ({ onCommandDetected }) => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 bg-white p-4 rounded-full shadow-xl text-center">
-      <button
-        onClick={handleVoice}
-        className={`w-12 h-12 rounded-full ${
-          isListening ? "bg-red-500" : "bg-green-600"
-        } text-white text-xl`}
-        aria-label="Start voice input"
-      >
-        🎙️
-      </button>
-      {transcript && (
-        <p className="text-xs mt-2 text-gray-700 max-w-[150px]">
-          You said: “{transcript}”
-        </p>
-      )}
-    </div>
+    <></>
+    // <div className="fixed bottom-6 right-6 z-50 bg-white p-4 rounded-full shadow-xl text-center">
+    //   <button
+    //     onClick={handleVoice}
+    //     className={`w-12 h-12 rounded-full ${
+    //       isListening ? "bg-red-500" : "bg-green-600"
+    //     } text-white text-xl`}
+    //     aria-label="Start voice input"
+    //   >
+    //     🎙️
+    //   </button>
+    //   {transcript && (
+    //     <p className="text-xs mt-2 text-gray-700 max-w-[150px]">
+    //       You said: “{transcript}”
+    //     </p>
+    //   )}
+    // </div>
   );
 };
 
