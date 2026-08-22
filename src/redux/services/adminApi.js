@@ -1,17 +1,9 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { createBaseQueryWithReauth } from "./baseQueryWithReauth";
 
 export const adminApi = createApi({
   reducerPath: "adminApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/api/v1`,
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState().auth?.token;
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      return headers;
-    },
-  }),
+  baseQuery: createBaseQueryWithReauth(""),
   tagTypes: ["AdminOrders", "AdminProducts", "AdminContacts"],
   endpoints: (builder) => ({
     // ── Orders ──────────────────────────────────────────────
@@ -54,6 +46,24 @@ export const adminApi = createApi({
       invalidatesTags: ["AdminProducts"],
     }),
 
+    // ── Inventory ────────────────────────────────────────────
+    restockProduct: builder.mutation({
+      query: ({ id, quantity, note }) => ({
+        url: `/inventory/${id}/restock`,
+        method: "POST",
+        body: { quantity, note },
+      }),
+      invalidatesTags: ["AdminProducts"],
+    }),
+    adjustStock: builder.mutation({
+      query: ({ id, quantity_change, change_type, note }) => ({
+        url: `/inventory/${id}/adjust`,
+        method: "POST",
+        body: { quantity_change, change_type, note },
+      }),
+      invalidatesTags: ["AdminProducts"],
+    }),
+
     // ── Contacts / Messages ───────────────────────────────────
     getContacts: builder.query({
       query: ({ unread, page = 1, limit = 50 } = {}) => {
@@ -78,6 +88,8 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useRestockProductMutation,
+  useAdjustStockMutation,
   useGetContactsQuery,
   useMarkContactReadMutation,
 } = adminApi;

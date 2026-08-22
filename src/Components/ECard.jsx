@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { addItem } from "../redux/reducers/cartSlice";
 import { toast } from "react-toastify";
 
-function ECard({ id, image, title, description, price }) {
+function ECard({ id, image, title, description, price, inStock = true }) {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const dispatch = useDispatch();
@@ -12,8 +12,9 @@ function ECard({ id, image, title, description, price }) {
   const parsedPrice = parseFloat(price);
 
   const handleAddToCart = () => {
+    if (!inStock) return;
     dispatch(addItem({
-      id: id || title,
+      id,
       title,
       price: parsedPrice,
       quantity,
@@ -34,9 +35,14 @@ function ECard({ id, image, title, description, price }) {
         <img
           src={image}
           alt={title}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          className={`w-full h-full object-cover transition-transform duration-500 hover:scale-110 ${!inStock ? "grayscale opacity-60" : ""}`}
           loading="lazy"
         />
+        {!inStock && (
+          <span className="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-red-600 text-white rounded-full">
+            Sold Out
+          </span>
+        )}
       </div>
 
       <div className="p-4 flex flex-col flex-1">
@@ -67,14 +73,15 @@ function ECard({ id, image, title, description, price }) {
 
           <motion.button
             onClick={handleAddToCart}
-            className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+            disabled={!inStock}
+            className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               added
                 ? "bg-green-500 text-white"
                 : "bg-brand-dark hover:bg-brand-espresso text-white"
             }`}
-            whileTap={{ scale: 0.95 }}
+            whileTap={inStock ? { scale: 0.95 } : undefined}
           >
-            {added ? "Added!" : "Add"}
+            {!inStock ? "Sold Out" : added ? "Added!" : "Add"}
           </motion.button>
         </div>
       </div>

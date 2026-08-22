@@ -44,12 +44,14 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
-// Require admin role — redirects customers to home, guests to login
+// Require staff/admin role — redirects customers to home, guests to login.
+// Finer-grained permissions (e.g. admin-only user management) are enforced
+// inside AdminPanel itself and by the backend on each request.
 const AdminRoute = ({ children }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user?.role !== "admin") return <Navigate to="/" replace />;
+  if (!["staff", "admin"].includes(user?.role)) return <Navigate to="/" replace />;
   return children;
 };
 

@@ -5,12 +5,13 @@ import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { selectCartItems, selectCartTotal, clearCart } from "../../redux/reducers/cartSlice";
 import { selectIsAuthenticated, selectCurrentUser } from "../../redux/reducers/authSlice";
-import { useAddToCartMutation } from "../../redux/services/cartApi";
+import { useAddToCartMutation, useClearCartMutation } from "../../redux/services/cartApi";
 import { useCreateOrderMutation } from "../../redux/services/orderApi";
 import {
   useCreateRazorpayOrderMutation,
   useVerifyPaymentMutation,
 } from "../../redux/services/paymentApi";
+import ReceiptModal from "../../Components/ReceiptModal";
 
 const PAYMENT_METHODS = [
   { id: "upi",  label: "UPI / Card / Netbanking", icon: "💳", razorpay: true },
@@ -38,13 +39,15 @@ function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [address, setAddress]             = useState("");
   const [isProcessing, setIsProcessing]   = useState(false);
+  const [receipt, setReceipt]             = useState(null);
 
   const [addToCart]            = useAddToCartMutation();
+  const [clearServerCart]      = useClearCartMutation();
   const [createOrder]          = useCreateOrderMutation();
   const [createRazorpayOrder]  = useCreateRazorpayOrderMutation();
   const [verifyPayment]        = useVerifyPaymentMutation();
 
-  if (cartItems.length === 0) {
+  if (cartItems.length === 0 && !receipt) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-brand-light gap-4">
         <div className="text-6xl">☕</div>
@@ -61,8 +64,13 @@ function Checkout() {
   }
 
   const syncCartToServer = async () => {
+    // Clear out any stale/orphaned rows from a previous incomplete checkout
+    // before pushing the current local cart, so the server-side cart always
+    // exactly mirrors what the customer is about to pay for.
+    await clearServerCart().unwrap();
     for (const item of cartItems) {
       await addToCart({
+        product_id:    item.id,
         product_name:  item.title,
         unit_price:    item.price,
         quantity:      item.quantity,
@@ -79,11 +87,15 @@ function Checkout() {
       payment_status,
     }).unwrap();
 
+    const { invoice, ...order } = result.data;
+    setReceipt({ order, invoice, items: cartItems });
     dispatch(clearCart());
-    toast.success(
-      `Order #${result?.data?.id ?? ""} placed! We'll notify you when it's ready.`
-    );
-    navigate("/");
+    setIsProcessing(false);
+  };
+
+  const handleCloseReceipt = () => {
+    setReceipt(null);
+    navigate("/profile");
   };
 
   const handlePlaceOrder = async () => {
@@ -298,6 +310,15 @@ function Checkout() {
           </div>
         </motion.div>
       </div>
+
+      {receipt && (
+        <ReceiptModal
+          order={receipt.order}
+          invoice={receipt.invoice}
+          items={receipt.items}
+          onClose={handleCloseReceipt}
+        />
+      )}
     </div>
   );
 }

@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import { logout, selectCurrentUser } from "../../redux/reducers/authSlice";
+import { logout, selectCurrentUser, selectCurrentToken } from "../../redux/reducers/authSlice";
 import { useLogoutMutation } from "../../redux/services/authApi";
 import { useGetOrdersQuery } from "../../redux/services/orderApi";
+import { downloadInvoicePdf } from "../../utils/downloadInvoice";
 
 const STATUS_STYLES = {
   pending: "bg-amber-100 text-amber-800",
@@ -20,10 +21,23 @@ function Profile() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
+  const token = useSelector(selectCurrentToken);
   const [logoutApi] = useLogoutMutation();
   const { data, isLoading } = useGetOrdersQuery();
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const orders = data?.data?.orders ?? [];
+
+  const handleDownloadInvoice = async (orderId) => {
+    setDownloadingId(orderId);
+    try {
+      await downloadInvoicePdf({ orderId, token });
+    } catch (err) {
+      toast.error(err.message || "Couldn't download invoice");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -60,7 +74,7 @@ function Profile() {
               <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-brand-espresso/10 dark:bg-brand-caramel/15 text-brand-espresso dark:text-brand-caramel rounded-full">
                 {user?.role || "customer"}
               </span>
-              {user?.role === "admin" && (
+              {["staff", "admin"].includes(user?.role) && (
                 <Link
                   to="/admin"
                   className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-brand-espresso text-white dark:bg-brand-caramel dark:text-brand-espresso rounded-full hover:opacity-80 transition-opacity"
@@ -152,6 +166,13 @@ function Profile() {
                       ₹{parseFloat(order.total_amount).toFixed(2)}
                     </span>
                   </div>
+                  <button
+                    onClick={() => handleDownloadInvoice(order.id)}
+                    disabled={downloadingId === order.id}
+                    className="mt-3 w-full py-2 text-xs font-semibold rounded-lg border border-brand-espresso/30 dark:border-brand-caramel/30 text-brand-espresso dark:text-brand-caramel hover:bg-brand-espresso/5 dark:hover:bg-brand-caramel/10 transition-colors disabled:opacity-50"
+                  >
+                    {downloadingId === order.id ? "Preparing…" : "Download Invoice"}
+                  </button>
                 </div>
               ))}
             </div>

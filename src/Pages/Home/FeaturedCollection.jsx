@@ -1,53 +1,20 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { addItem } from "../../redux/reducers/cartSlice";
+import { useGetProductsQuery } from "../../redux/services/productApi";
 import TiltCard from "../../Components/TiltCard";
 
 const EASE = [0.22, 1, 0.36, 1];
 
-const FEATURED = [
-  {
-    id: "signature-espresso",
-    title: "Signature Espresso",
-    description: "Double-shot intensity with notes of dark chocolate and toasted hazelnut.",
-    price: 189,
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=800&q=80",
-    tag: "Best Seller",
-  },
-  {
-    id: "caramel-cloud-latte",
-    title: "Caramel Cloud Latte",
-    description: "Velvety steamed milk folded over caramel gold, finished with sea-salt foam.",
-    price: 249,
-    rating: 4.8,
-    image:
-      "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=800&q=80",
-    tag: "New",
-  },
-  {
-    id: "single-origin-pourover",
-    title: "Single-Origin Pour Over",
-    description: "Chikmagalur estate beans, hand-poured for a bright, floral cup.",
-    price: 279,
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1497636577773-f1231844b336?auto=format&fit=crop&w=800&q=80",
-    tag: "Limited",
-  },
-  {
-    id: "velvet-cold-brew",
-    title: "Velvet Cold Brew",
-    description: "Steeped 18 hours over ice — smooth, bold, and naturally sweet.",
-    price: 229,
-    rating: 4.7,
-    image:
-      "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=800&q=80",
-    tag: "Iced",
-  },
+// Curated picks for this section, resolved against live catalog data below —
+// keeps price/stock/image in sync with whatever the admin panel has set.
+const FEATURED_SLUGS = [
+  { slug: "signature-espresso", rating: 4.9, tag: "Best Seller" },
+  { slug: "caramel-cloud-latte", rating: 4.8, tag: "New" },
+  { slug: "single-origin-pourover", rating: 4.9, tag: "Limited" },
+  { slug: "velvet-cold-brew", rating: 4.7, tag: "Iced" },
 ];
 
 const Stars = ({ rating }) => (
@@ -75,13 +42,14 @@ function FeaturedCard({ product, index }) {
       addItem({
         id: product.id,
         title: product.title,
-        price: product.price,
+        price: parseFloat(product.price),
         quantity: 1,
         image: product.image,
       })
     );
     toast.success(`${product.title} added to cart`);
   };
+  const inStock = product.in_stock !== false;
 
   return (
     <motion.div
@@ -97,10 +65,10 @@ function FeaturedCard({ product, index }) {
               src={product.image}
               alt={product.title}
               loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!inStock ? "grayscale opacity-60" : ""}`}
             />
             <span className="absolute top-3 left-3 px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-brand-espresso/85 text-brand-caramel rounded-full backdrop-blur-sm">
-              {product.tag}
+              {inStock ? product.tag : "Sold Out"}
             </span>
             <div className="absolute inset-0 bg-gradient-to-t from-brand-espresso/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
@@ -116,15 +84,16 @@ function FeaturedCard({ product, index }) {
 
             <div className="mt-4 flex items-center justify-between">
               <span className="text-xl font-bold font-serif text-brand-espresso dark:text-brand-caramel">
-                ₹{product.price}
+                ₹{parseFloat(product.price).toFixed(0)}
               </span>
               <motion.button
                 onClick={handleAdd}
-                className="btn-shine px-4 py-2.5 bg-brand-espresso dark:bg-brand-caramel text-white dark:text-brand-espresso text-sm font-semibold rounded-xl"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.94 }}
+                disabled={!inStock}
+                className="btn-shine px-4 py-2.5 bg-brand-espresso dark:bg-brand-caramel text-white dark:text-brand-espresso text-sm font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={inStock ? { scale: 1.05 } : undefined}
+                whileTap={inStock ? { scale: 0.94 } : undefined}
               >
-                Add to Cart
+                {inStock ? "Add to Cart" : "Sold Out"}
               </motion.button>
             </div>
           </div>
@@ -135,6 +104,19 @@ function FeaturedCard({ product, index }) {
 }
 
 function FeaturedCollection() {
+  const { data } = useGetProductsQuery({ limit: 200 });
+  const products = data?.data?.products ?? [];
+
+  const featured = useMemo(() => {
+    return FEATURED_SLUGS.map(({ slug, rating, tag }) => {
+      const p = products.find((pr) => pr.slug === slug);
+      if (!p) return null;
+      return { id: p.id, title: p.name, description: p.description, price: p.price, image: p.image_url, in_stock: p.in_stock, rating, tag };
+    }).filter(Boolean);
+  }, [products]);
+
+  if (featured.length === 0) return null;
+
   return (
     <section id="featured" className="py-24 bg-brand-cream dark:bg-[#1a0f0b] transition-colors duration-500">
       <div className="max-w-screen-xl mx-auto px-4">
@@ -157,7 +139,7 @@ function FeaturedCollection() {
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURED.map((product, i) => (
+          {featured.map((product, i) => (
             <FeaturedCard key={product.id} product={product} index={i} />
           ))}
         </div>

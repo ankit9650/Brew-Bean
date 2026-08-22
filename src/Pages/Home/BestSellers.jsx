@@ -1,25 +1,29 @@
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { addItem } from "../../redux/reducers/cartSlice";
+import { useGetProductsQuery } from "../../redux/services/productApi";
 
 const EASE = [0.22, 1, 0.36, 1];
 
-const BEST_SELLERS = [
-  { id: "classic-cappuccino", title: "Classic Cappuccino", price: 199, image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80" },
-  { id: "hazelnut-mocha", title: "Hazelnut Mocha", price: 239, image: "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?auto=format&fit=crop&w=600&q=80" },
-  { id: "flat-white", title: "Flat White", price: 209, image: "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80" },
-  { id: "vienna-roast-beans", title: "Vienna Roast Beans 250g", price: 449, image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80" },
-  { id: "iced-americano", title: "Iced Americano", price: 179, image: "https://images.unsplash.com/photo-1517959105821-eaf2591984ca?auto=format&fit=crop&w=600&q=80" },
-  { id: "affogato-classico", title: "Affogato Classico", price: 259, image: "https://images.unsplash.com/photo-1594631252845-29fc4cc8cde9?auto=format&fit=crop&w=600&q=80" },
+// Curated picks, resolved against live catalog data in BestSellers() below.
+const BEST_SELLER_SLUGS = [
+  "classic-cappuccino",
+  "hazelnut-mocha",
+  "flat-white",
+  "vienna-roast-beans-250g",
+  "iced-americano",
+  "affogato-classico",
 ];
 
 function SliderCard({ item }) {
   const dispatch = useDispatch();
+  const inStock = item.in_stock !== false;
 
   const handleAdd = () => {
-    dispatch(addItem({ id: item.id, title: item.title, price: item.price, quantity: 1, image: item.image }));
+    if (!inStock) return;
+    dispatch(addItem({ id: item.id, title: item.title, price: parseFloat(item.price), quantity: 1, image: item.image }));
     toast.success(`${item.title} added to cart`);
   };
 
@@ -34,21 +38,22 @@ function SliderCard({ item }) {
           src={item.image}
           alt={item.title}
           loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!inStock ? "grayscale opacity-60" : ""}`}
         />
         <span className="absolute top-3 right-3 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-brand-caramel text-brand-espresso rounded-full">
-          Best Seller
+          {inStock ? "Best Seller" : "Sold Out"}
         </span>
       </div>
       <div className="p-4">
         <h3 className="font-serif font-bold text-brand-espresso dark:text-brand-foam truncate">{item.title}</h3>
         <div className="mt-2 flex items-center justify-between">
-          <span className="font-bold text-brand-espresso dark:text-brand-caramel">₹{item.price}</span>
+          <span className="font-bold text-brand-espresso dark:text-brand-caramel">₹{parseFloat(item.price).toFixed(0)}</span>
           <motion.button
             onClick={handleAdd}
-            className="w-8 h-8 rounded-full bg-brand-espresso dark:bg-brand-caramel text-white dark:text-brand-espresso flex items-center justify-center"
-            whileHover={{ scale: 1.15, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
+            disabled={!inStock}
+            className="w-8 h-8 rounded-full bg-brand-espresso dark:bg-brand-caramel text-white dark:text-brand-espresso flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            whileHover={inStock ? { scale: 1.15, rotate: 90 } : undefined}
+            whileTap={inStock ? { scale: 0.9 } : undefined}
             aria-label={`Add ${item.title} to cart`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
@@ -64,8 +69,20 @@ function SliderCard({ item }) {
 function BestSellers() {
   const reduceMotion = useReducedMotion();
   const marqueeRef = useRef(null);
+  const { data } = useGetProductsQuery({ limit: 200 });
+  const products = data?.data?.products ?? [];
+
+  const bestSellers = useMemo(() => {
+    return BEST_SELLER_SLUGS.map((slug) => {
+      const p = products.find((pr) => pr.slug === slug);
+      return p ? { id: p.id, title: p.name, price: p.price, image: p.image_url, in_stock: p.in_stock } : null;
+    }).filter(Boolean);
+  }, [products]);
+
+  if (bestSellers.length === 0) return null;
+
   // Duplicate the list so -50% translation loops seamlessly
-  const loop = [...BEST_SELLERS, ...BEST_SELLERS];
+  const loop = [...bestSellers, ...bestSellers];
 
   return (
     <section className="py-24 bg-brand-cream dark:bg-[#1a0f0b] transition-colors duration-500 overflow-hidden">

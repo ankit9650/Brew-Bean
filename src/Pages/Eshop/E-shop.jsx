@@ -1,151 +1,33 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
 import ECard from "../../Components/ECard";
 import Cart from "../../Components/Cart";
 import { selectCartCount } from "../../redux/reducers/cartSlice";
+import { useGetProductsQuery } from "../../redux/services/productApi";
 import logo from "../../../public/assets/logo.png";
 
-const PRODUCTS = {
-  "Coffee & Tea": [
-    {
-      id: "arabica-beans",
-      image: "https://m.media-amazon.com/images/I/51ajQfHc6QL.jpg",
-      title: "Arabica Coffee Beans",
-      description: "Larger, sweeter, and aromatic — the finest arabica beans for a premium cup.",
-      price: "1090",
-    },
-    {
-      id: "robusta-beans",
-      image: "https://m.media-amazon.com/images/I/518qXcokIZL.jpg",
-      title: "Robusta Coffee Beans",
-      description: "Double the caffeine with a bold, strong character perfect for espresso blends.",
-      price: "900",
-    },
-    {
-      id: "catimor-beans",
-      image: "https://kopicha.com/wp-content/uploads/2021/01/Arabica-Catimor.jpg",
-      title: "Catimor Coffee Beans",
-      description: "A unique Caturra & Timor hybrid with complex, earthy notes.",
-      price: "890",
-    },
-    {
-      id: "darjeeling-tea",
-      image: "https://www.gitagged.com/wp-content/uploads/2020/12/Darjeeling-Black-tea-A2.jpg",
-      title: "Darjeeling Tea",
-      description: "First flush organic Darjeeling — sharp, clear, and slightly astringent.",
-      price: "650",
-    },
-    {
-      id: "jasmine-tea",
-      image: "https://tasteofchai.in/cdn/shop/files/JasmineTea.jpg",
-      title: "Jasmine Petals Tea",
-      description: "Organic green tea infused with the delicate fragrance of jasmine.",
-      price: "760",
-    },
-    {
-      id: "apricot-tea",
-      image: "https://uk.ahmadtea.com/cdn/shop/products/20FApricotface1_600x600_crop_center.jpg",
-      title: "Apricot Black Tea",
-      description: "Nepali black tea with fruity and floral apricot notes.",
-      price: "850",
-    },
-  ],
-  "Beverages": [
-    {
-      id: "coca-cola",
-      image: "https://5.imimg.com/data5/SELLER/Default/2023/10/355068045/LM/XC/UW/199268574/coca-cola-cold-drink-bottle-size-500-ml-for-instant-refreshment.jpg",
-      title: "Coca Cola",
-      description: "Classic carbonated refreshment, cold and crisp.",
-      price: "150",
-    },
-    {
-      id: "monster-energy",
-      image: "https://snackstar.in/cdn/shop/products/532b3a20-33f9-495f-b8e5-c3f9bb769888.jpg",
-      title: "Monster Energy Drink",
-      description: "The fuel of champions — bold energy for bold ambitions.",
-      price: "90",
-    },
-    {
-      id: "prime-drink",
-      image: "https://m.media-amazon.com/images/I/41oUx8AurjL.jpg",
-      title: "Prime Hydration Drink",
-      description: "Sports hydration drink with electrolytes and natural flavors.",
-      price: "650",
-    },
-    {
-      id: "sandwich",
-      image: "https://www.tasteofhome.com/wp-content/uploads/2018/01/Country-Ham-Sandwiches_EXPS_FT23_25769_ST_1219_8.jpg",
-      title: "Club Sandwich",
-      description: "Fresh and filling club sandwich made with quality ingredients.",
-      price: "150",
-    },
-    {
-      id: "veg-patty",
-      image: "https://kwalitybakery.in/wp-content/uploads/2021/11/Patties-1.jpeg",
-      title: "Veg Patty",
-      description: "Crispy vegetable patty baked fresh every morning.",
-      price: "50",
-    },
-    {
-      id: "burger",
-      image: "https://theeburgerdude.com/wp-content/uploads/2022/09/9093e9_0c4e70b12b0843d3a2c78207361932d1_mv2.webp",
-      title: "Classic Burger",
-      description: "Juicy patty with fresh lettuce, tomato, and our signature sauce.",
-      price: "250",
-    },
-  ],
-  "Mugs & Accessories": [
-    {
-      id: "steel-mug",
-      image: "https://images-cdn.ubuy.co.in/63b6398bc4f6ff2853297733-stainless-steel-thermos-coffee-mug.jpg",
-      title: "Stainless Steel Black Mug",
-      description: "Insulated double-wall construction keeps drinks hot for 12 hours.",
-      price: "499",
-    },
-    {
-      id: "electric-frother",
-      image: "https://m.media-amazon.com/images/I/51+vA2qAe9L._AC_UF894,1000_QL80_.jpg",
-      title: "Electric Milk Frother",
-      description: "Create café-quality froth at home in seconds.",
-      price: "450",
-    },
-    {
-      id: "coffee-sipper",
-      image: "https://m.media-amazon.com/images/I/51sYkcpkeWL._AC_UF894,1000_QL80_.jpg",
-      title: "Coffee Sipper",
-      description: "Elegant sipper for savoring your brew, one sip at a time.",
-      price: "650",
-    },
-    {
-      id: "coffee-sachets",
-      image: "https://5.imimg.com/data5/SELLER/Default/2022/2/MJ/YL/HL/3541922/s-l1600.jpg",
-      title: "Coffee Sachets (50 pcs)",
-      description: "50 individually wrapped Nescafe sachets in assorted flavors.",
-      price: "250",
-    },
-    {
-      id: "travel-mug",
-      image: "https://nutcaseshop.com/cdn/shop/products/NC-CUS-TUMCFF-WHITE-0016b.jpg",
-      title: "Travel Coffee Mug",
-      description: "Leak-proof travel mug — your perfect on-the-go companion.",
-      price: "780",
-    },
-    {
-      id: "custom-mug",
-      image: "https://homafy.com/wp-content/uploads/2023/03/customized-mugs-for-girl-Copy.jpg",
-      title: "Customizable Mug",
-      description: "Personalize a mug for yourself or as a thoughtful gift.",
-      price: "799",
-    },
-  ],
-};
-
-const TABS = Object.keys(PRODUCTS);
+const FALLBACK_TABS = ["Coffee & Tea", "Beverages", "Mugs & Accessories"];
 
 function Eshop() {
-  const [activeTab, setActiveTab] = useState(TABS[0]);
+  const { data, isLoading, isError } = useGetProductsQuery({ limit: 200 });
+  const products = data?.data?.products ?? [];
+
+  const grouped = useMemo(() => {
+    const byCategory = {};
+    for (const p of products) {
+      const cat = p.category_name || "Other";
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(p);
+    }
+    return byCategory;
+  }, [products]);
+
+  const TABS = Object.keys(grouped).length ? Object.keys(grouped) : FALLBACK_TABS;
+  const [activeTab, setActiveTab] = useState(null);
+  const currentTab = activeTab && TABS.includes(activeTab) ? activeTab : TABS[0];
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const navigate = useNavigate();
   const cartCount = useSelector(selectCartCount);
@@ -213,13 +95,13 @@ function Eshop() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`relative px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-                activeTab === tab
+                currentTab === tab
                   ? "text-brand-warm"
                   : "text-brand-medium hover:text-brand-dark"
               }`}
             >
               {tab}
-              {activeTab === tab && (
+              {currentTab === tab && (
                 <motion.div
                   className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-warm"
                   layoutId="activeTab"
@@ -230,17 +112,33 @@ function Eshop() {
         </div>
 
         {/* Products grid */}
-        <motion.div
-          key={activeTab}
-          className="flex flex-wrap justify-center gap-6 py-8"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {PRODUCTS[activeTab].map((product) => (
-            <ECard key={product.id} {...product} />
-          ))}
-        </motion.div>
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <div className="w-8 h-8 rounded-full border-2 border-brand-warm border-t-transparent animate-spin" />
+          </div>
+        ) : isError ? (
+          <p className="text-center text-brand-medium py-16">Couldn&apos;t load the shop right now. Please try again shortly.</p>
+        ) : (
+          <motion.div
+            key={currentTab}
+            className="flex flex-wrap justify-center gap-6 py-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {(grouped[currentTab] ?? []).map((product) => (
+              <ECard
+                key={product.id}
+                id={product.id}
+                image={product.image_url}
+                title={product.name}
+                description={product.description}
+                price={product.price}
+                inStock={product.in_stock !== false}
+              />
+            ))}
+          </motion.div>
+        )}
       </div>
 
       {isCartOpen && <Cart onClose={() => setIsCartOpen(false)} />}

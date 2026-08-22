@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from "../../Components/NotificationBell";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-import { logout, selectCurrentUser } from "../../redux/reducers/authSlice";
+import { logout, selectCurrentUser, selectCurrentToken } from "../../redux/reducers/authSlice";
 import { useLogoutMutation } from "../../redux/services/authApi";
+import { downloadInvoicePdf } from "../../utils/downloadInvoice";
 import {
   useGetAllOrdersQuery,
   useUpdateOrderStatusMutation,
@@ -14,6 +15,7 @@ import {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useRestockProductMutation,
   useGetContactsQuery,
   useMarkContactReadMutation,
 } from "../../redux/services/adminApi";
@@ -34,6 +36,7 @@ const STATUS_STYLES = {
 const EMPTY_FORM = {
   name: "", slug: "", category_id: "", price: "",
   description: "", image_url: "", is_featured: false, tags: "",
+  stock_quantity: "", low_stock_threshold: "10",
 };
 
 const toSlug = (s) =>
@@ -85,9 +88,12 @@ function SectionTitle({ children }) {
 // ─── Tab: Overview ────────────────────────────────────────────────────────────
 
 function OverviewTab() {
+  const user = useSelector(selectCurrentUser);
+  const isAdmin = user?.role === "admin";
   const { data: ordersRes, isLoading: oLoading } = useGetAllOrdersQuery({ limit: 500 });
   const { data: prodsRes,  isLoading: pLoading } = useGetAdminProductsQuery({ limit: 500 });
-  const { data: msgsRes }  = useGetContactsQuery({ unread: true, limit: 1 });
+  // Contact messages are admin-only on the backend — skip the call for staff
+  const { data: msgsRes }  = useGetContactsQuery({ unread: true, limit: 1 }, { skip: !isAdmin });
 
   const orders   = ordersRes?.data ?? [];
   const products = prodsRes?.data?.products ?? [];
@@ -99,6 +105,7 @@ function OverviewTab() {
   );
   const pending  = orders.filter((o) => o.status === "pending").length;
   const active   = products.filter((p) => p.is_available).length;
+  const lowStock = products.filter((p) => p.is_low_stock);
   const recent   = [...orders].slice(0, 8);
 
   if (oLoading || pLoading) return <Spinner />;
@@ -117,6 +124,15 @@ function OverviewTab() {
           <div className="mt-4 flex items-center gap-2 text-sm text-amber-400 bg-amber-900/20 border border-amber-700/40 rounded-xl px-4 py-3">
             <span>✉</span>
             <span><strong>{unread}</strong> unread message{unread !== 1 ? "s" : ""} in your inbox.</span>
+          </div>
+        )}
+        {lowStock.length > 0 && (
+          <div className="mt-4 flex items-start gap-2 text-sm text-red-400 bg-red-900/20 border border-red-700/40 rounded-xl px-4 py-3">
+            <span>⚠</span>
+            <span>
+              <strong>{lowStock.length}</strong> product{lowStock.length !== 1 ? "s" : ""} running low on stock:{" "}
+              {lowStock.map((p) => p.name).join(", ")}
+            </span>
           </div>
         )}
       </div>
@@ -163,10 +179,12 @@ function OverviewTab() {
 // ─── Tab: Orders ──────────────────────────────────────────────────────────────
 
 function OrdersTab() {
+  const token = useSelector(selectCurrentToken);
   const [statusFilter, setStatusFilter] = useState("all");
   const query = statusFilter === "all" ? {} : { status: statusFilter };
   const { data, isLoading, isFetching } = useGetAllOrdersQuery({ ...query, limit: 100 });
   const [updateStatus] = useUpdateOrderStatusMutation();
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const orders = data?.data ?? [];
 
@@ -176,6 +194,17 @@ function OrdersTab() {
       toast.success(`Order #${id} → ${status}`);
     } catch {
       toast.error("Failed to update status");
+    }
+  };
+
+  const handleDownloadInvoice = async (orderId) => {
+    setDownloadingId(orderId);
+    try {
+      await downloadInvoicePdf({ orderId, token });
+    } catch (err) {
+      toast.error(err.message || "Couldn't download invoice");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -205,7 +234,7 @@ function OrdersTab() {
           <table className="w-full text-sm text-left">
             <thead className="bg-[#0f0703] text-brand-latte/60 text-xs uppercase tracking-wider">
               <tr>
-                {["#", "Customer", "Items", "Total", "Method", "Address", "Status", "Date"].map((h) => (
+                {["#", "Customer", "Items", "Total", "Method", "Address", "Status", "Date", "Invoice"].map((h) => (
                   <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -242,6 +271,15 @@ function OrdersTab() {
                   <td className="px-4 py-3 text-brand-latte/50 text-xs whitespace-nowrap">
                     {new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                   </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => handleDownloadInvoice(o.id)}
+                      disabled={downloadingId === o.id}
+                      className="px-3 py-1 text-xs rounded-lg bg-white/10 hover:bg-white/20 text-brand-cream transition-colors disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {downloadingId === o.id ? "…" : "Invoice"}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -255,11 +293,14 @@ function OrdersTab() {
 // ─── Tab: Products ────────────────────────────────────────────────────────────
 
 function ProductsTab() {
+  const user = useSelector(selectCurrentUser);
+  const isAdmin = user?.role === "admin";
   const { data: prodsRes, isLoading } = useGetAdminProductsQuery({ limit: 200 });
   const { data: catsRes } = useGetCategoriesQuery();
   const [createProduct, { isLoading: creating }] = useCreateProductMutation();
   const [updateProduct, { isLoading: updating }] = useUpdateProductMutation();
   const [deleteProduct] = useDeleteProductMutation();
+  const [restockProduct, { isLoading: restocking }] = useRestockProductMutation();
 
   const products   = prodsRes?.data?.products ?? [];
   const categories = catsRes?.data ?? [];
@@ -268,6 +309,8 @@ function ProductsTab() {
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm]  = useState(false);
   const [confirmId, setConfirmId] = useState(null);
+  const [restockTarget, setRestockTarget] = useState(null);
+  const [restockQty, setRestockQty] = useState("");
 
   const setField = (k, v) =>
     setForm((f) => ({
@@ -292,6 +335,8 @@ function ProductsTab() {
       image_url: p.image_url ?? "",
       is_featured: p.is_featured,
       tags: Array.isArray(p.tags) ? p.tags.join(", ") : "",
+      stock_quantity: "",
+      low_stock_threshold: p.low_stock_threshold ?? "10",
     });
     setEditingId(p.id);
     setShowForm(true);
@@ -301,12 +346,19 @@ function ProductsTab() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const { stock_quantity, low_stock_threshold, ...rest } = form;
     const payload = {
-      ...form,
+      ...rest,
       price: parseFloat(form.price),
       category_id: form.category_id ? parseInt(form.category_id) : null,
       tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+      low_stock_threshold: low_stock_threshold !== "" ? parseInt(low_stock_threshold) : 10,
     };
+    // Stock quantity is only settable at creation — editing an existing
+    // product's stock goes through Restock so every change is audit-logged.
+    if (!editingId) {
+      payload.stock_quantity = stock_quantity !== "" ? parseInt(stock_quantity) : 0;
+    }
     try {
       if (editingId) {
         await updateProduct({ id: editingId, ...payload }).unwrap();
@@ -318,6 +370,23 @@ function ProductsTab() {
       closeForm();
     } catch (err) {
       toast.error(err?.data?.message || "Failed to save product");
+    }
+  };
+
+  const handleRestock = async (e) => {
+    e.preventDefault();
+    const quantity = parseInt(restockQty);
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      toast.error("Enter a positive whole number");
+      return;
+    }
+    try {
+      await restockProduct({ id: restockTarget.id, quantity }).unwrap();
+      toast.success(`Added ${quantity} units to "${restockTarget.name}"`);
+      setRestockTarget(null);
+      setRestockQty("");
+    } catch (err) {
+      toast.error(err?.data?.message || "Restock failed");
     }
   };
 
@@ -344,12 +413,14 @@ function ProductsTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <SectionTitle>Products ({products.length})</SectionTitle>
-        <button
-          onClick={showForm && !editingId ? closeForm : openAdd}
-          className="px-4 py-2 bg-brand-caramel hover:bg-brand-caramel-light text-brand-espresso font-bold text-sm rounded-xl transition-colors"
-        >
-          {showForm && !editingId ? "✕ Cancel" : "+ Add Product"}
-        </button>
+        {isAdmin && (
+          <button
+            onClick={showForm && !editingId ? closeForm : openAdd}
+            className="px-4 py-2 bg-brand-caramel hover:bg-brand-caramel-light text-brand-espresso font-bold text-sm rounded-xl transition-colors"
+          >
+            {showForm && !editingId ? "✕ Cancel" : "+ Add Product"}
+          </button>
+        )}
       </div>
 
       {/* Add / Edit form */}
@@ -401,6 +472,33 @@ function ProductsTab() {
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+              </div>
+
+              {!editingId && (
+                <div>
+                  <label className="block text-xs text-brand-latte/60 mb-1">Initial Stock</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.stock_quantity}
+                    onChange={(e) => setField("stock_quantity", e.target.value)}
+                    placeholder="0"
+                    className="w-full bg-[#1a0f0b] border border-white/15 text-brand-cream text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-caramel"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs text-brand-latte/60 mb-1">Low Stock Alert Below</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={form.low_stock_threshold}
+                  onChange={(e) => setField("low_stock_threshold", e.target.value)}
+                  className="w-full bg-[#1a0f0b] border border-white/15 text-brand-cream text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-caramel"
+                />
               </div>
 
               <div>
@@ -461,7 +559,7 @@ function ProductsTab() {
           <table className="w-full text-sm text-left">
             <thead className="bg-[#0f0703] text-brand-latte/60 text-xs uppercase tracking-wider">
               <tr>
-                {["Image", "Name", "Category", "Price", "Featured", "Available", "Actions"].map((h) => (
+                {["Image", "Name", "Category", "Price", "Stock", "Featured", "Available", "Actions"].map((h) => (
                   <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -482,6 +580,24 @@ function ProductsTab() {
                   </td>
                   <td className="px-4 py-3 text-brand-latte/60 text-xs">{p.category_name || "—"}</td>
                   <td className="px-4 py-3 font-semibold text-brand-caramel">₹{parseFloat(p.price).toFixed(2)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`font-semibold ${p.is_low_stock ? "text-red-400" : "text-brand-cream"}`}>
+                        {p.stock_quantity ?? 0}
+                      </span>
+                      {p.is_low_stock && (
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-red-900/40 text-red-400 uppercase">
+                          Low
+                        </span>
+                      )}
+                      <button
+                        onClick={() => { setRestockTarget(p); setRestockQty(""); }}
+                        className="ml-1 px-2 py-0.5 text-[11px] rounded-lg bg-white/10 hover:bg-white/20 text-brand-cream transition-colors"
+                      >
+                        Restock
+                      </button>
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     {p.is_featured ? (
                       <span className="text-brand-caramel text-xs font-bold">★ Yes</span>
@@ -506,7 +622,7 @@ function ProductsTab() {
                       >
                         Edit
                       </button>
-                      {confirmId === p.id ? (
+                      {isAdmin && (confirmId === p.id ? (
                         <div className="flex gap-1">
                           <button
                             onClick={() => handleDelete(p.id)}
@@ -528,7 +644,7 @@ function ProductsTab() {
                         >
                           Remove
                         </button>
-                      )}
+                      ))}
                     </div>
                   </td>
                 </tr>
@@ -537,6 +653,54 @@ function ProductsTab() {
           </table>
         </div>
       )}
+
+      {/* Restock modal */}
+      <AnimatePresence>
+        {restockTarget && (
+          <motion.div
+            key="restock-overlay"
+            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setRestockTarget(null)}
+          >
+            <motion.form
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={handleRestock}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#241712] border border-white/10 rounded-2xl p-6 w-full max-w-sm space-y-4"
+            >
+              <h3 className="text-brand-cream font-bold font-serif">Restock &quot;{restockTarget.name}&quot;</h3>
+              <p className="text-brand-latte/50 text-xs">Current stock: {restockTarget.stock_quantity ?? 0} units</p>
+              <div>
+                <label className="block text-xs text-brand-latte/60 mb-1">Units to add</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  autoFocus
+                  value={restockQty}
+                  onChange={(e) => setRestockQty(e.target.value)}
+                  className="w-full bg-[#1a0f0b] border border-white/15 text-brand-cream text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-caramel"
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setRestockTarget(null)} className="px-4 py-2 text-sm text-brand-latte/60 hover:text-brand-cream transition-colors">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={restocking}
+                  className="px-5 py-2 bg-brand-caramel hover:bg-brand-caramel-light text-brand-espresso font-bold text-sm rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {restocking ? "Adding…" : "Add Stock"}
+                </button>
+              </div>
+            </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -625,7 +789,7 @@ function MessagesTab() {
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 
-function Sidebar({ activeTab, onTabChange, user, onLogout, onClose }) {
+function Sidebar({ activeTab, onTabChange, user, onLogout, onClose, navItems }) {
   return (
     <div className="flex flex-col h-full bg-[#0f0703] px-4 py-6">
       <div className="mb-8">
@@ -641,7 +805,7 @@ function Sidebar({ activeTab, onTabChange, user, onLogout, onClose }) {
       </div>
 
       <nav className="flex-1 space-y-1">
-        {NAV.map((item) => (
+        {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => { onTabChange(item.id); onClose?.(); }}
@@ -693,8 +857,16 @@ export default function AdminPanel() {
   const user       = useSelector(selectCurrentUser);
   const [logoutApi] = useLogoutMutation();
 
+  // Messages (contact form submissions) is an admin-only backend endpoint —
+  // hide the tab entirely for staff rather than let them click into a 403.
+  const navItems = user?.role === "admin" ? NAV : NAV.filter((n) => n.id !== "messages");
+
   const [activeTab,   setActiveTab]   = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!navItems.some((n) => n.id === activeTab)) setActiveTab("overview");
+  }, [navItems, activeTab]);
 
   const handleLogout = async () => {
     try {
@@ -711,9 +883,10 @@ export default function AdminPanel() {
     onTabChange: setActiveTab,
     user,
     onLogout: handleLogout,
+    navItems,
   };
 
-  const activeLabel = NAV.find((n) => n.id === activeTab)?.label ?? "";
+  const activeLabel = navItems.find((n) => n.id === activeTab)?.label ?? "";
 
   return (
     <div className="min-h-screen bg-[#1a0f0b] flex text-brand-cream">
